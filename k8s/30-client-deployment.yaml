@@ -1,0 +1,42 @@
+# The MapLibre client is stateless (nginx serving static files), so a Deployment is the right controller:
+# any replica is interchangeable and a dead pod is simply replaced by a new one.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client
+  namespace: punepg
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: client
+  template:
+    metadata:
+      labels:
+        app: client
+    spec:
+      containers:
+        - name: nginx
+          image: punepg-client:local        # built from client/Dockerfile and loaded with "kind load docker-image"
+          imagePullPolicy: IfNotPresent     # never try to pull "local" from Docker Hub
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet: { path: /, port: 80 }
+            periodSeconds: 5
+          resources:
+            requests: { cpu: "50m", memory: "32Mi" }
+            limits:   { cpu: "250m", memory: "128Mi" }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: client
+  namespace: punepg
+spec:
+  type: ClusterIP                           # reached from the laptop with: kubectl -n punepg port-forward svc/client 8088:80
+  selector:
+    app: client
+  ports:
+    - port: 80
+      targetPort: 80

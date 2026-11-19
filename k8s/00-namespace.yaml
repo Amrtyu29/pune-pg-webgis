@@ -1,0 +1,6 @@
+# Everything of this project lives in one namespace, so "kubectl get all -n punepg" shows the whole stack
+# and "kubectl delete namespace punepg" removes it cleanly.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: punepg

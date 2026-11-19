@@ -1,0 +1,69 @@
+# PostGIS as a StatefulSet: the pod gets a stable name (postgis-0) and its OWN PersistentVolumeClaim,
+# created from volumeClaimTemplates, that is re-attached to the replacement pod when this one dies.
+# A Deployment could not promise that one-to-one bond between a pod and its disk (see study/S4).
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgis                 # DNS name other pods use: postgis.punepg.svc.cluster.local, or just "postgis"
+  namespace: punepg
+spec:
+  clusterIP: None               # "headless": a StatefulSet's pods are addressed individually (postgis-0.postgis)
+  selector:
+    app: postgis
+  ports:
+    - name: pg
+      port: 5432
+      targetPort: 5432
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgis
+  namespace: punepg
+spec:
+  serviceName: postgis
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgis
+  template:
+    metadata:
+      labels:
+        app: postgis
+    spec:
+      containers:
+        - name: postgis
+          image: postgis/postgis:16-3.5
+          ports:
+            - containerPort: 5432
+              name: pg
+          envFrom:
+            - secretRef:
+                name: postgis-secret          # POSTGRES_USER / POSTGRES_PASSWORD / POSTGRES_DB
+          env:
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata   # subfolder: the volume root holds a lost+found dir
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+          readinessProbe:                        # pod is "Ready" only when PostgreSQL accepts connections
+            exec:
+              command: ["sh", "-c", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            exec:
+              command: ["sh", "-c", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
+            initialDelaySeconds: 30
+            periodSeconds: 15
+          resources:
+            requests: { cpu: "250m", memory: "512Mi" }
+            limits:   { cpu: "1",    memory: "1Gi" }
+  volumeClaimTemplates:                         # one PVC per pod: data-postgis-0
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 2Gi
