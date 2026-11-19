@@ -1,6 +1,7 @@
 # Pune PG & hostel access — a Web GIS for Prabhag 11 (Bopodi – Savitribai Phule Pune University)
 
-**Public map:** _(GitHub Pages URL goes here after Phase 5)_
+**Public map:** **https://amrtyu29.github.io/pune-pg-webgis/** (serverless: GitHub Pages + one PMTiles file, deployed by
+[GitHub Actions](https://github.com/Amrtyu29/pune-pg-webgis/actions/workflows/deploy-pages.yml) on every push)
 
 WebGIS assignment "From Nearby Services to a Deployed Map", M.Sc. Data Science and Spatial Analytics,
 Symbiosis Institute of Geoinformatics. Guide: Dr. Veena Parihar. Student: Aarshad Rathod.
