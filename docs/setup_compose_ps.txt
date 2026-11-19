@@ -1,0 +1,5 @@
+﻿NAME             STATUS                   PORTS
+pg_db            Up 4 minutes (healthy)   0.0.0.0:5434->5432/tcp, [::]:5434->5432/tcp
+pg_featureserv   Up 3 minutes (healthy)   0.0.0.0:9000->9000/tcp, [::]:9000->9000/tcp
+pg_geoserver     Up 4 minutes (healthy)   0.0.0.0:8080->8080/tcp, [::]:8080->8080/tcp
+pg_tileserv      Up 4 minutes (healthy)   0.0.0.0:7800->7800/tcp, [::]:7800->7800/tcp

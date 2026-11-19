@@ -24,7 +24,9 @@ services:
       - "${POSTGRES_PORT:-5434}:5432"        # host:container
     volumes:
       - pgdata:/var/lib/postgresql/data      # named volume so data survives "docker compose down"
-      - ./sql/init:/docker-entrypoint-initdb.d:ro   # *.sql here run once, on first start only
+      # Mount the init script as ONE FILE, not the whole folder: mounting a folder over
+      # /docker-entrypoint-initdb.d hides the image's own 10_postgis.sh and PostGIS never gets created.
+      - ./sql/init/01_extensions.sql:/docker-entrypoint-initdb.d/01_extensions.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s

@@ -85,6 +85,12 @@ _(Phases 2–5 setup steps are added as they are built.)_
   `engine linux/wsl failed to start: checking preconditions: WSL update required`.
   Cause: WSL 2.0.14 was older than Docker Desktop 4.95 requires. Fix: `wsl --update` (to 3.0.5), restart Docker Desktop;
   the engine came up in 44 s.
+* **2026-11-19 — pg_tileserv kept restarting.** `docker logs pg_tileserv` ended every few seconds with
+  `level=fatal msg="ERROR: function postgis_full_version() does not exist (SQLSTATE 42883)"` although the image
+  is `postgis/postgis`. Cause: my Compose file bind-mounted the whole `./sql/init` folder onto
+  `/docker-entrypoint-initdb.d`, which *hides* the image's own `10_postgis.sh`, so the database was created
+  without the PostGIS extension. Fix: mount my script as a single file inside that folder and add
+  `CREATE EXTENSION postgis` to it; `docker compose down -v` to wipe the half-initialised volume, then `up -d`.
 * **2026-11-19 — No healthcheck possible for pg_tileserv / pg_featureserv with curl.** The `pramsey/*` images have
   no `curl` or `wget` (`which curl` exits 127), so `docker compose ps` could never report them healthy. Their
   `/bin/sh` is bash, so the healthcheck opens a raw TCP socket with bash's `/dev/tcp/127.0.0.1/7800` instead.
