@@ -1,0 +1,16 @@
+# Q10 comparison: the SAME client built in ONE stage from a full base image.
+# Node, npm, node_modules and the build tools all stay in the final image and it serves the files with
+# a Node static server instead of nginx.
+#   docker build -f client/Dockerfile.single-stage -t punepg-client:single client/
+FROM node:20
+WORKDIR /app
+COPY package.json ./
+RUN npm install --no-audit --no-fund && npm install --no-audit --no-fund serve@14
+COPY index.html app.js config.js style.css ./
+COPY data/ ./data/
+RUN mkdir -p vendor \
+ && cp node_modules/maplibre-gl/dist/maplibre-gl.js  vendor/ \
+ && cp node_modules/maplibre-gl/dist/maplibre-gl.css vendor/ \
+ && cp node_modules/pmtiles/dist/pmtiles.js          vendor/
+EXPOSE 80
+CMD ["npx", "serve", "-l", "80", "."]

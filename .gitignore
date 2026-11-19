@@ -23,3 +23,8 @@ client/dist/
 .DS_Store
 Thumbs.db
 .vscode/
+
+# client build leftovers
+client/node_modules/
+client/vendor/
+client/package-lock.json

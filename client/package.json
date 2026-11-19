@@ -1,0 +1,10 @@
+{
+  "name": "punepg-client",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MapLibre GL JS client for the Prabhag 11 PG/hostel walking-access map",
+  "dependencies": {
+    "maplibre-gl": "4.7.1",
+    "pmtiles": "3.2.1"
+  }
+}

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PG & hostel walking access — Prabhag 11, Pune</title>
+  <!-- MapLibre GL JS and the PMTiles protocol are vendored into ./vendor by the Dockerfile (npm) or by
+       client/fetch-vendor.ps1 for local development, so the page has no third-party CDN dependency. -->
+  <link rel="stylesheet" href="vendor/maplibre-gl.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Can residents of Prabhag 11 (Bopodi – SPPU) walk to a PG or hostel in 15 minutes?</h1>
+    <span id="mode" class="pill">…</span>
+  </header>
+
+  <div id="map"></div>
+
+  <!-- Layer switcher: each checkbox toggles one MapLibre layer group -->
+  <aside id="panel">
+    <h2>Layers</h2>
+    <label><input type="checkbox" data-group="hex" checked> H3 cells: walking distance to nearest PG/hostel</label>
+    <label class="sub">
+      resolution
+      <select id="hexres"><option value="9" selected>9 (≈0.1 km²)</option><option value="8">8 (≈0.7 km²)</option></select>
+    </label>
+    <label class="sub">
+      colour by
+      <select id="hexattr">
+        <option value="net_dist_m" selected>network distance (m)</option>
+        <option value="sl_dist_m">straight-line distance (m)</option>
+        <option value="pop">population (WorldPop 2020)</option>
+      </select>
+    </label>
+    <label><input type="checkbox" data-group="iso" checked> 15-min isochrones (network, 4.8 km/h)</label>
+    <label><input type="checkbox" data-group="buf"> 1,200 m straight-line buffers</label>
+    <label><input type="checkbox" data-group="services" checked> PGs and hostels (click for details)</label>
+    <label><input type="checkbox" data-group="area" checked> Ward boundary</label>
+    <label><input type="checkbox" data-group="dem"> Elevation (DEM via GeoServer WMS)</label>
+    <label><input type="checkbox" data-group="bld-wms"> Buildings as tiled WMS PNG (GeoServer)</label>
+    <label><input type="checkbox" data-group="bld-mvt"> Buildings as vector tiles (pg_tileserv)</label>
+    <label><input type="checkbox" data-group="bld-wfs"> Buildings as ONE WFS GeoJSON request (Q9 test)</label>
+
+    <h2>Legend</h2>
+    <div id="legend"></div>
+
+    <h2>About</h2>
+    <p class="small">
+      Walking speed 4.8 km/h, threshold 15 min = 1,200 m on the OSM street network. Data © OpenStreetMap
+      contributors (ODbL), population WorldPop 2020 (CC BY 4.0), DEM Copernicus GLO-30, ward map PMC 2022
+      (traced by SeerMaps / answerquest, MIT).
+    </p>
+    <p class="small" id="stats"></p>
+  </aside>
+
+  <script src="vendor/maplibre-gl.js"></script>
+  <script src="vendor/pmtiles.js"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

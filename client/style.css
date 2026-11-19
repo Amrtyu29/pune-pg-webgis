@@ -1,0 +1,22 @@
+:root { --panel-w: 340px; font-family: system-ui, Segoe UI, Roboto, sans-serif; }
+* { box-sizing: border-box; }
+body { margin: 0; height: 100vh; display: grid; grid-template-rows: auto 1fr; grid-template-columns: 1fr var(--panel-w); }
+header { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; padding: 8px 14px; background: #1f2937; color: #fff; }
+header h1 { font-size: 15px; font-weight: 600; margin: 0; }
+.pill { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #374151; }
+#map { grid-column: 1; grid-row: 2; }
+#panel { grid-column: 2; grid-row: 2; overflow: auto; padding: 10px 14px; border-left: 1px solid #ddd; background: #fafafa; font-size: 13px; }
+#panel h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: #555; margin: 14px 0 6px; }
+#panel label { display: block; margin: 4px 0; }
+#panel label.sub { margin-left: 22px; color: #444; }
+#panel select { margin-left: 4px; }
+.small { font-size: 11.5px; color: #555; line-height: 1.4; }
+#legend .row { display: flex; align-items: center; gap: 8px; margin: 2px 0; }
+#legend .sw { width: 18px; height: 12px; border: 1px solid #999; display: inline-block; }
+#legend .dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid #fff; box-shadow: 0 0 0 1px #777; display: inline-block; }
+.maplibregl-popup-content { font-size: 12.5px; line-height: 1.4; }
+.maplibregl-popup-content b { font-size: 13px; }
+@media (max-width: 800px) {
+  body { grid-template-columns: 1fr; grid-template-rows: auto 1fr auto; }
+  #panel { grid-column: 1; grid-row: 3; max-height: 40vh; border-left: 0; border-top: 1px solid #ddd; }
+}
