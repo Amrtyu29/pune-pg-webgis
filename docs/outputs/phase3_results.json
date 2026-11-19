@@ -1,0 +1,85 @@
+{
+  "q6": {
+    "different": 13,
+    "ratio_median": 1.55,
+    "ratio_max": 4.57,
+    "worst_pt": 16,
+    "worst_sl_m": 351.8,
+    "worst_net_m": 1256.0,
+    "worst_ratio": 3.57,
+    "worst_sl_service": 15,
+    "worst_net_service": 26,
+    "worst_abs_pt": 23,
+    "worst_abs_sl_m": 2390.8,
+    "worst_abs_net_m": 3582.8,
+    "worst_pt_latlon": [
+      18.55305548264837,
+      73.83176615313359
+    ]
+  },
+  "q7": {
+    "total_pop": 98233.81970214844,
+    "table": [
+      {
+        "unit": "pixel 100 m (reference)",
+        "% population beyond 1200 m (network)": 54.35,
+        "% population beyond 1200 m (buffer)": 28.83,
+        "units": 685
+      },
+      {
+        "unit": "H3 res 9",
+        "% population beyond 1200 m (network)": 53.43,
+        "% population beyond 1200 m (buffer)": 27.63,
+        "units": 95
+      },
+      {
+        "unit": "H3 res 8",
+        "% population beyond 1200 m (network)": 56.37,
+        "% population beyond 1200 m (buffer)": 29.82,
+        "units": 22
+      },
+      {
+        "unit": "ward (1 unit, centroid)",
+        "% population beyond 1200 m (network)": 0.0,
+        "% population beyond 1200 m (buffer)": 0.0,
+        "units": 1
+      }
+    ],
+    "worst_cell_r9": "89608851867ffff",
+    "worst_cell_r9_pop": 127.2,
+    "worst_cell_r9_net_m": 5198.1,
+    "worst_cell_r9_sl_m": 2609.5,
+    "no_street_cells_r9": []
+  },
+  "q8": {
+    "table": [
+      {
+        "unit": "pixel 100 m",
+        "% covered @4.8 km/h": 45.65,
+        "% covered @3.6 km/h": 33.22,
+        "percentage points lost": 12.43
+      },
+      {
+        "unit": "H3 res 9",
+        "% covered @4.8 km/h": 46.57,
+        "% covered @3.6 km/h": 38.75,
+        "percentage points lost": 7.82
+      },
+      {
+        "unit": "H3 res 8",
+        "% covered @4.8 km/h": 43.63,
+        "% covered @3.6 km/h": 38.74,
+        "percentage points lost": 4.89
+      }
+    ],
+    "cells_lost_r9": 11,
+    "pop_lost_r9": 7685.8
+  },
+  "threshold_m": 1200.0,
+  "slow_threshold_m": 900.0,
+  "services_total": 54,
+  "services_inside": 19,
+  "hex8": 22,
+  "hex9": 95,
+  "pop_ward": 98233.81970214844
+}

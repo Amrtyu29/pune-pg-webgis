@@ -93,6 +93,20 @@ _(Phases 2–5 setup steps are added as they are built.)_
   `/docker-entrypoint-initdb.d`, which *hides* the image's own `10_postgis.sh`, so the database was created
   without the PostGIS extension. Fix: mount my script as a single file inside that folder and add
   `CREATE EXTENSION postgis` to it; `docker compose down -v` to wipe the half-initialised volume, then `up -d`.
+* **2026-11-19 — GeoServer bounding box mixed degrees and metres.** After publishing the `services` table, the WMS 1.3.0
+  capabilities showed `<BoundingBox CRS="EPSG:4326" minx="18.51" miny="73.80" maxx="2053095.6" maxy="378856.2"/>` and the first
+  Q4 GetMap requests returned near-empty images. Cause: the table has two geometry columns (`geom` in 4326 and `geom_utm` in 32643)
+  and GeoServer computed the extent over both. Fix: `sql/05_geoserver_views.sql` creates `gs_area`, `gs_services`, `gs_buildings`
+  views that expose only the 4326 geometry, and `analysis/setup_geoserver.py` publishes the views (it deletes and re-creates the layers).
+* **2026-11-19 — OSMnx 2.x renamed its index columns.** My de-duplication step `drop_duplicates(["element_type","osmid"])` silently
+  reduced 33 tag-based features to 1, because OSMnx 2 returns the index as `element` / `id`. The notebook printed
+  "inside Prabhag 11: 12" instead of 19; the SQL list of services showed empty `element_type` / `osmid` for the survivor, which gave it away.
+  Fix: rename the columns right after `reset_index()`.
+* **2026-11-19 — Phase 3 notebook: `GeoSeries.distance(GeometryArray)` raises `TypeError`.** GeoPandas 1.2 only accepts an aligned
+  GeoSeries there; element-wise distance between two plain geometry arrays is `shapely.distance(a, b)`.
+* **2026-11-19 — WorldPop refuses HTTP range requests.** `rasterio.open("/vsicurl/…ind_ppp_2020_constrained.tif")` failed with
+  `Range downloading not supported by this server!`, so the 531 MB national raster is downloaded once to `data/raw/` (git-ignored) and
+  clipped locally; the 19 KB clip is committed.
 * **2026-11-19 — No healthcheck possible for pg_tileserv / pg_featureserv with curl.** The `pramsey/*` images have
   no `curl` or `wget` (`which curl` exits 127), so `docker compose ps` could never report them healthy. Their
   `/bin/sh` is bash, so the healthcheck opens a raw TCP socket with bash's `/dev/tcp/127.0.0.1/7800` instead.

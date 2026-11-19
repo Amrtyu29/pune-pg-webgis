@@ -110,6 +110,12 @@ one open item.
 
 ## Phase 2 — Publish your own OGC services
 
+Setup is scripted in [`analysis/setup_geoserver.py`](analysis/setup_geoserver.py) (GeoServer REST API): workspace `punepg`, PostGIS store
+(host `db`, port 5432 inside the Compose network), layers `area`, `services`, `buildings` from the views in [`sql/05_geoserver_views.sql`](sql/05_geoserver_views.sql),
+style [`sld/services.sld`](sld/services.sld) (rules: unnamed / PG / hostel), and the coverage `dem` from `data/dem/dem_prabhag11.tif` (Copernicus GLO-30, clipped by
+[`analysis/prepare_dem.py`](analysis/prepare_dem.py)), served by WMS and WCS (`…/wcs?service=WCS&version=2.0.1&request=DescribeCoverage&coverageId=punepg__dem`).
+WMS render of DEM + ward + services: ![](docs/screenshots/phase2_dem_wms.png)
+
 ### Q4. The axis-order trap
 
 **Script:** [`analysis/evidence_q4_q5.py`](analysis/evidence_q4_q5.py) · **raw log:** [`docs/outputs/q4_q5_evidence.txt`](docs/outputs/q4_q5_evidence.txt) · capabilities document: [`docs/outputs/q4_getcapabilities_130.xml`](docs/outputs/q4_getcapabilities_130.xml)
