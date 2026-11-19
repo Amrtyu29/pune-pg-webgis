@@ -235,13 +235,123 @@ _pending_
 ## Phase 5 — Deploy it, for free
 
 ### Q10. Image size
-_pending_
+
+Two builds of the same client ([`client/Dockerfile`](client/Dockerfile) multi-stage, [`client/Dockerfile.single-stage`](client/Dockerfile.single-stage)):
+
+```powershell
+docker build -t punepg-client:local client/
+docker build -f client/Dockerfile.single-stage -t punepg-client:single client/
+docker images | findstr punepg
+```
+
+| Image | Base | Size |
+|---|---|---|
+| `punepg-client:single` | one stage, `node:20` (Debian), serves with `npx serve` | **1.7 GB** |
+| `punepg-client:local` | stage 1 `node:20` builder → stage 2 `nginx:1.27-alpine` | **83.8 MB** (20× smaller) |
+
+`docker history punepg-client:local` (full output in [`docs/outputs/q10_history_multistage.txt`](docs/outputs/q10_history_multistage.txt); single-stage in [`q10_history_singlestage.txt`](docs/outputs/q10_history_singlestage.txt)):
+
+```
+CREATED BY                                      SIZE
+EXPOSE [80/tcp]                                 0B
+COPY /build/site /usr/share/nginx/html          8.81MB     <- my site: HTML/JS/CSS + vendored MapLibre (0.8 MB) + GeoJSON data (7 MB)
+COPY nginx.conf /etc/nginx/conf.d/default.conf  20.5kB
+RUN /bin/sh -c set -x && apkArch=...            38.7MB     <- nginx binary + modules (largest layer)
+...
+RUN /bin/sh -c set -x && addgroup -g 101...     5.36MB     <- nginx user, entrypoint scripts
+ADD alpine-minirootfs-3.21.3-x86_64.tar.gz /    8.5MB      <- Alpine base
+```
+
+*Explanation.* In the multi-stage image the largest layer is the **nginx install (38.7 MB)**, followed by my site content (8.8 MB, mostly the
+exported GeoJSON) and the Alpine root file system (8.5 MB); nothing from the build stage survives except the copied `/build/site` folder.
+The single-stage image keeps the whole `node:20` base (Debian + Node + npm + Python/gcc build tools, about 1.1 GB) plus `node_modules`
+for MapLibre and `serve`, none of which the browser ever needs, so it is 1.7 GB. Smaller images pull faster into kind, start faster and have
+far fewer packages to patch; that is what the `COPY --from=builder` line buys.
 
 ### Q11. Self-healing and state
-_pending_
+
+Cluster: `kind create cluster --name punepg` (Kubernetes v1.37.0, one node); manifests in [`k8s/`](k8s/) applied with `kubectl apply -f k8s/`
+(see [`k8s/README.md`](k8s/README.md)). Experiment script: [`k8s/q11_selfheal.ps1`](k8s/q11_selfheal.ps1): it writes a marker row,
+runs `kubectl get pods -w` with a wall-clock stamp on every line, deletes the pod, waits for Ready and reads the marker again.
+Full logs: [`docs/outputs/q11_pvc.txt`](docs/outputs/q11_pvc.txt), [`docs/outputs/q11_emptydir.txt`](docs/outputs/q11_emptydir.txt).
+
+**Run 1: StatefulSet with a PersistentVolumeClaim (`data-postgis-0`, 2 Gi, bound)**
+
+```
+15:48:18.699  rows in q11_marker before deletion: 1 rows, first written 2026-11-19 10:18:18
+15:48:21.723  kubectl delete pod postgis-0
+15:48:22.516  postgis-0   1/1   Terminating
+15:48:23.829  postgis-0   0/1   Pending             <- new pod object (uid 1968f08a… -> d7dac2a2…)
+15:48:23.856  postgis-0   0/1   ContainerCreating
+15:48:24.412  postgis-0   0/1   Running
+15:48:35.093  postgis-0   1/1   Running             <- readiness probe (pg_isready) passes
+15:48:35.182  postgis-0 Ready again after 13.4 s
+15:48:43.502  rows in q11_marker after recreation: 1 rows, first written 2026-11-19 10:18:18   <- DATA SURVIVED
+```
+
+**Run 2: same StatefulSet with `emptyDir: {}` instead of the PVC** ([`k8s/experiments/postgis-emptydir.yaml`](k8s/experiments/postgis-emptydir.yaml))
+
+```
+15:48:58.555  rows in q11_marker before deletion: 1 rows
+15:49:00.903  kubectl delete pod postgis-0
+15:49:02.085  postgis-0   0/1   Pending
+15:49:02.640  postgis-0   0/1   Running
+15:49:13.114  postgis-0   1/1   Running
+15:49:13.122  postgis-0 Ready again after 12.2 s
+15:49:18.618  rows in q11_marker after recreation: ERROR:  relation "q11_marker" does not exist   <- EVERYTHING LOST
+```
+
+| | PVC | emptyDir |
+|---|---|---|
+| Replacement pod Running | 2.7 s after delete | 1.7 s |
+| Ready (PostgreSQL accepting connections) | **13.4 s** | **12.2 s** |
+| Marker table after restart | present, same timestamp | gone; PostgreSQL re-ran `initdb` into an empty directory (the whole database, users and PostGIS extension had to be recreated from the image defaults) |
+
+*Explanation.* Self-healing is the StatefulSet controller's reconciliation loop: the moment the pod object disappears the controller sees
+"desired 1, observed 0" and creates `postgis-0` again, and the only real delay is PostgreSQL's own start-up until `pg_isready` succeeds. What
+survives depends purely on *where the files were*. With a PVC the volume is a separate Kubernetes object; the new pod mounts the same
+`data-postgis-0` claim and finds its data directory intact. An `emptyDir` is created with the pod and deleted with it, so the new pod starts
+with an empty disk and the entrypoint initialises a brand-new cluster: the database is "healthy" and completely empty. A database therefore
+needs a **StatefulSet, not a Deployment**: the StatefulSet gives the pod a stable name (`postgis-0`), a stable DNS entry through the headless
+Service, and a `volumeClaimTemplate` that binds exactly one PVC to exactly that pod, re-attached on every restart. A Deployment treats its pods
+as interchangeable copies with random names: it could schedule two replicas at once during a rollout, both writing the same files, and it has no
+notion of "the volume that belongs to replica 0".
+
+To reach the client: `kubectl -n punepg port-forward svc/client 8089:80` → http://localhost:8089 (nginx `punepg-client:local` loaded into kind
+with `kind load docker-image`).
 
 ### Q12. Static vs server deployment
-_pending_
+
+Public URL: **https://amrtyu29.github.io/pune-pg-webgis/** (built and deployed by [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml):
+tippecanoe → `punepg.pmtiles` (3,687,883 bytes, layers `hex_r8`, `hex_r9`, `buildings`) → GitHub Pages).
+Measured with [`analysis/measure_q12.py`](analysis/measure_q12.py) (headless Chromium, cache disabled, zoom 14, same centre as Q9;
+raw log [`docs/outputs/q12_pages_requests.json`](docs/outputs/q12_pages_requests.json), screenshot [`docs/screenshots/q12_pages_zoom14.png`](docs/screenshots/q12_pages_zoom14.png)).
+
+One PMTiles request and its response:
+
+```
+GET https://amrtyu29.github.io/pune-pg-webgis/data/punepg.pmtiles
+Range: bytes=1792576-1830936
+→ HTTP 206 Partial Content
+Content-Range: bytes 1792576-1830936/3687883   (38,361 bytes)
+```
+
+| At zoom 14, Pages site | Requests | KB |
+|---|---|---|
+| PMTiles (header 16 KB + directory + hex tiles for the view) | 7, all **HTTP 206** | **378.8 KB** |
+| GeoJSON fetches (services, isochrones, buffers, area) | 21 | 1,161 KB |
+| JS + CSS (MapLibre, PMTiles, app) | 7 | 1,276 KB |
+| OSM basemap tiles | 16 | 417 KB |
+| **Whole view** | **36** | **2,819 KB** |
+
+*Comparison with Q9.* The hex layer at zoom 14 cost 7 range requests / 379 KB from a static file, in the same order as pg_tileserv's 6 MVT
+requests / 855 KB for the buildings at that zoom; the first request (`bytes=0-16383`) is the PMTiles header, the next ones the directory, and only
+then the tile bytes, so a static archive pays a small fixed overhead but after that behaves exactly like a tile server, with no process running.
+**Two things the server stack can do that the static site cannot:** (1) answer *queries*: a WFS/CQL filter, an OGC API `bbox=` request, or a new
+isochrone for a point the user clicks, because PostGIS is there to compute; (2) serve *live* data and rasters: any table update is visible on the
+next tile, and the DEM comes through WMS/WCS, whereas the static site froze the data at build time and has no raster service at all (its DEM toggle
+is disabled). **One advantage of the static site:** it costs nothing and has nothing to keep alive: no database, GeoServer or tile server to patch,
+restart or scale; GitHub's CDN serves byte ranges to any number of viewers, and a push rebuilds everything.
 
 ## Bonus (if attempted)
 

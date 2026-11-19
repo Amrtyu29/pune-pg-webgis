@@ -1,0 +1,23 @@
+﻿CREATED BY                                      SIZE
+EXPOSE [80/tcp]                                 0B
+COPY /build/site /usr/share/nginx/html # bui…   8.81MB
+COPY nginx.conf /etc/nginx/conf.d/default.co…   20.5kB
+RUN /bin/sh -c set -x     && apkArch="$(cat …   38.7MB
+ENV NJS_RELEASE=1                               0B
+ENV NJS_VERSION=0.8.10                          0B
+CMD ["nginx" "-g" "daemon off;"]                0B
+STOPSIGNAL SIGQUIT                              0B
+EXPOSE map[80/tcp:{}]                           0B
+ENTRYPOINT ["/docker-entrypoint.sh"]            0B
+COPY 30-tune-worker-processes.sh /docker-ent…   16.4kB
+COPY 20-envsubst-on-templates.sh /docker-ent…   12.3kB
+COPY 15-local-resolvers.envsh /docker-entryp…   12.3kB
+COPY 10-listen-on-ipv6-by-default.sh /docker…   12.3kB
+COPY docker-entrypoint.sh / # buildkit          8.19kB
+RUN /bin/sh -c set -x     && addgroup -g 101…   5.36MB
+ENV DYNPKG_RELEASE=1                            0B
+ENV PKG_RELEASE=1                               0B
+ENV NGINX_VERSION=1.27.5                        0B
+LABEL maintainer=NGINX Docker Maintainers <d…   0B
+CMD ["/bin/sh"]                                 0B
+ADD alpine-minirootfs-3.21.3-x86_64.tar.gz /…   8.5MB

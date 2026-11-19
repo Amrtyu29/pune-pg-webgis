@@ -1,0 +1,31 @@
+﻿15:48:13.093  == Q11 run 'pvc' ==
+15:48:13.099  waiting for postgis-0 to be Ready
+15:48:13.558  writing marker table q11_marker
+15:48:18.699  rows in q11_marker before deletion: 1 rows, first written 2026-11-19 10:18:18.36692+00
+15:48:18.829  pod uid before: 1968f08a-6673-4a5d-8cca-3db7f1ae8b40
+15:48:21.723  kubectl delete pod postgis-0
+15:48:23.825  delete command returned
+15:48:35.182  postgis-0 Ready again after 13.4 s
+15:48:43.502  pod uid after:  d7dac2a2-a59d-4991-8d26-506d84597875  (new pod object: True)
+15:48:43.502  rows in q11_marker after recreation: 1 rows, first written 2026-11-19 10:18:18.36692+00
+
+---- kubectl get pods -w (timestamped) ----
+15:48:20.473  postgis-0   1/1   Running   0     2m3s
+15:48:22.516  postgis-0   1/1   Terminating   0     2m5s
+15:48:22.535  postgis-0   1/1   Terminating   0     2m5s
+15:48:22.835  postgis-0   0/1   Completed     0     2m5s
+15:48:23.812  postgis-0   0/1   Completed     0     2m6s
+15:48:23.819  postgis-0   0/1   Completed     0     2m6s
+15:48:23.829  postgis-0   0/1   Pending       0     0s
+15:48:23.835  postgis-0   0/1   Pending       0     0s
+15:48:23.856  postgis-0   0/1   ContainerCreating   0     0s
+15:48:24.307  postgis-0   0/1   ContainerCreating   0     1s
+15:48:24.412  postgis-0   0/1   Running             0     1s
+15:48:35.093  postgis-0   1/1   Running             0     12s
+15:48:35.188  postgis-0   1/1   Running             0     12s
+
+---- volumes of the pod ----
+[{"name":"data","persistentVolumeClaim":{"claimName":"data-postgis-0"}},{"name":"kube-api-access-9x8vz","projected":{"defaultMode":420,"sources":[{"serviceAccountToken":{"expirationSeconds":3607,"path":"token"}},{"configMap":{"items":[{"key":"ca.crt","path":"ca.crt"}],"name":"kube-root-ca.crt"}},{"downwardAPI":{"items":[{"fieldRef":{"apiVersion":"v1","fieldPath":"metadata.namespace"},"path":"namespace"}]}}]}}]
+
+NAME             STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+data-postgis-0   Bound    pvc-212eded8-2a7d-42f5-8f9c-8a89fa785e8e   2Gi        RWO            standard       <unset>                 4m1s

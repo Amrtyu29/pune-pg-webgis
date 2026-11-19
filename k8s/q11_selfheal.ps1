@@ -10,6 +10,14 @@ $ns = "punepg"
 
 function Stamp($s) { "$(Get-Date -Format 'HH:mm:ss.fff')  $s" }
 
+# database user / name from .env (same values the Secret was made from), so psql can be called directly
+$env_ = @{}
+Get-Content (Join-Path $root ".env") | ForEach-Object {
+    if ($_ -match '^\s*([A-Z_]+)\s*=\s*(.*)\s*$') { $env_[$matches[1]] = $matches[2].Trim('"').Trim("'") }
+}
+$dbUser = $env_['POSTGRES_USER']; $dbName = $env_['POSTGRES_DB']
+function Psql($sql) { kubectl -n $ns exec postgis-0 -- psql -U $dbUser -d $dbName -At -c $sql 2>&1 }
+
 $log = @()
 $log += Stamp "== Q11 run '$Label' =="
 $log += Stamp "waiting for postgis-0 to be Ready"
@@ -17,8 +25,9 @@ kubectl -n $ns wait --for=condition=ready pod/postgis-0 --timeout=300s | Out-Nul
 
 # 1. write a marker row BEFORE the deletion (the thing that should survive)
 $log += Stamp "writing marker table q11_marker"
-kubectl -n $ns exec postgis-0 -- sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "CREATE TABLE IF NOT EXISTS q11_marker(created timestamptz DEFAULT now(), note text); INSERT INTO q11_marker(note) VALUES (''written before pod deletion'');"' | Out-Null
-$before = kubectl -n $ns exec postgis-0 -- sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -At -c "SELECT count(*) FROM q11_marker"'
+Psql "CREATE TABLE IF NOT EXISTS q11_marker(created timestamptz DEFAULT now(), note text)" | Out-Null
+Psql "INSERT INTO q11_marker(note) VALUES ('written before pod deletion')" | Out-Null
+$before = Psql "SELECT count(*) || ' rows, first written ' || min(created) FROM q11_marker"
 $log += Stamp "rows in q11_marker before deletion: $before"
 $uidBefore = kubectl -n $ns get pod postgis-0 -o jsonpath='{.metadata.uid}'
 $log += Stamp "pod uid before: $uidBefore"
@@ -45,7 +54,7 @@ Remove-Job $job | Out-Null
 
 # 4. did the data survive?
 $uidAfter = kubectl -n $ns get pod postgis-0 -o jsonpath='{.metadata.uid}'
-$after = kubectl -n $ns exec postgis-0 -- sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -At -c "SELECT count(*) FROM q11_marker" 2>&1'
+$after = Psql "SELECT count(*) || ' rows, first written ' || min(created) FROM q11_marker"
 $log += Stamp "pod uid after:  $uidAfter  (new pod object: $($uidBefore -ne $uidAfter))"
 $log += Stamp "rows in q11_marker after recreation: $after"
 $log += ""

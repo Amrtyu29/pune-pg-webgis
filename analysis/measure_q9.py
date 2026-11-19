@@ -16,10 +16,10 @@ from playwright.sync_api import sync_playwright
 ROOT = Path(__file__).resolve().parents[1]
 CLIENT = "http://localhost:8088/"
 CENTER = [73.829, 18.552]
-MODES = {  # checkbox group -> substring that identifies this layer's requests
-    "a) tiled WMS PNG (GeoServer)": ("bld-wms", "layers=punepg%3Abuildings"),
-    "b) one WFS GeoJSON (GeoServer)": ("bld-wfs", "typeNames=punepg:buildings"),
-    "c) MVT tiles (pg_tileserv)": ("bld-mvt", "public.buildings/"),
+MODES = {  # checkbox group -> test that identifies this layer's requests (MapLibre may or may not %-encode the colon)
+    "a) tiled WMS PNG (GeoServer)": ("bld-wms", lambda u: "GetMap" in u and "buildings" in u),
+    "b) one WFS GeoJSON (GeoServer)": ("bld-wfs", lambda u: "GetFeature" in u and "buildings" in u),
+    "c) MVT tiles (pg_tileserv)": ("bld-mvt", lambda u: "public.buildings/" in u),
 }
 ZOOMS = [12, 14, 16]
 results = []
@@ -36,12 +36,12 @@ with sync_playwright() as p:
             cdp.send("Network.setCacheDisabled", {"cacheDisabled": True})
             hits = []
             def on_response(resp, needle=needle, hits=hits):
-                if needle in resp.url:
+                if needle(resp.url):
                     try:
                         body = len(resp.body())
                     except Exception:
                         body = 0
-                    hits.append((resp.url, resp.status, body))
+                    hits.append((resp.url, resp.status, body, time.perf_counter()))
             page.on("response", on_response)
             page.goto(CLIENT, wait_until="load")
             page.wait_for_function("window.map && map.loaded()", timeout=60000)
@@ -51,7 +51,10 @@ with sync_playwright() as p:
             hits.clear()
             t0 = time.perf_counter()
             page.evaluate(f"""() => {{ const cb = document.querySelector('input[data-group="{group}"]'); cb.checked = true; cb.dispatchEvent(new Event('change')); }}""")
-            # wait for the layer to finish: MapLibre idle AND no new responses for 1.5 s
+            # wait for the layer to finish: MapLibre idle AND no new responses for 1.5 s (the WFS mode first
+            # awaits one big fetch, so give it up to 60 s before the idle test starts)
+            if group == "bld-wfs":
+                page.wait_for_function("document.getElementById('stats').textContent.startsWith('WFS')", timeout=120000)
             page.wait_for_timeout(1500)
             last = len(hits)
             for _ in range(120):
@@ -60,7 +63,8 @@ with sync_playwright() as p:
                 if idle and len(hits) == last:
                     break
                 last = len(hits)
-            elapsed = time.perf_counter() - t0 - 2.0   # subtract the fixed settle time
+            # "time to finish" = from ticking the box to the LAST response of this layer arriving
+            elapsed = (max(h[3] for h in hits) - t0) if hits else 0.0
             kb = sum(h[2] for h in hits) / 1024
             results.append({"zoom": zoom, "mode": label, "requests": len(hits), "kb": round(kb, 1), "seconds": round(max(elapsed, 0), 2),
                             "statuses": sorted({h[1] for h in hits})})

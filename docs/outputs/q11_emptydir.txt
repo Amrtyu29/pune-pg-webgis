@@ -1,0 +1,30 @@
+﻿15:48:47.212  == Q11 run 'emptydir' ==
+15:48:47.212  waiting for postgis-0 to be Ready
+15:48:58.083  writing marker table q11_marker
+15:48:58.555  rows in q11_marker before deletion: 1 rows, first written 2026-11-19 10:18:58.388086+00
+15:48:58.651  pod uid before: 628779b7-28c7-442f-9fb8-21b542d2ed68
+15:49:00.903  kubectl delete pod postgis-0
+15:49:02.080  delete command returned
+15:49:13.122  postgis-0 Ready again after 12.2 s
+15:49:18.617  pod uid after:  ace57a03-d676-429a-bd62-76bc565a98a9  (new pod object: True)
+15:49:18.618  rows in q11_marker after recreation: ERROR:  relation "q11_marker" does not exist LINE 1: ...) || ' rows, first written ' || min(created) FROM q11_marker                                                              ^ command terminated with exit code 1
+
+---- kubectl get pods -w (timestamped) ----
+15:48:59.102  postgis-0   1/1   Running   0     13s
+15:49:01.006  postgis-0   1/1   Terminating   0     15s
+15:49:01.024  postgis-0   1/1   Terminating   0     15s
+15:49:01.194  postgis-0   0/1   Completed     0     15s
+15:49:02.069  postgis-0   0/1   Completed     0     16s
+15:49:02.075  postgis-0   0/1   Completed     0     16s
+15:49:02.085  postgis-0   0/1   Pending       0     0s
+15:49:02.090  postgis-0   0/1   Pending       0     0s
+15:49:02.123  postgis-0   0/1   ContainerCreating   0     0s
+15:49:02.544  postgis-0   0/1   ContainerCreating   0     0s
+15:49:02.640  postgis-0   0/1   Running             0     0s
+15:49:13.114  postgis-0   1/1   Running             0     11s
+
+---- volumes of the pod ----
+[{"emptyDir":{},"name":"data"},{"name":"kube-api-access-bth26","projected":{"defaultMode":420,"sources":[{"serviceAccountToken":{"expirationSeconds":3607,"path":"token"}},{"configMap":{"items":[{"key":"ca.crt","path":"ca.crt"}],"name":"kube-root-ca.crt"}},{"downwardAPI":{"items":[{"fieldRef":{"apiVersion":"v1","fieldPath":"metadata.namespace"},"path":"namespace"}]}}]}}]
+
+NAME             STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+data-postgis-0   Bound    pvc-212eded8-2a7d-42f5-8f9c-8a89fa785e8e   2Gi        RWO            standard       <unset>                 4m36s
