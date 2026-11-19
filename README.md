@@ -63,9 +63,22 @@ docs/screenshots/    evidence screenshots linked from ANSWERS.md
    .venv\Scripts\python.exe -m pip install -r analysis\requirements.txt
    ```
 
-5. Run the notebooks in `analysis/` in order (Phase 1 first). Each one reads the database settings from `.env`.
-
-_(Phases 2–5 setup steps are added as they are built.)_
+5. **Phase 1 – data.** Run `analysis/01_download_and_load.ipynb` top to bottom (Jupyter, kernel = the `.venv`). It downloads OSM data
+   with OSMnx (cached in `data/raw/`), cleans it and loads `area`, `services`, `buildings`, `walk_nodes`, `walk_edges` into PostGIS, then
+   runs `sql/01_utm_copies.sql`. Evidence SQL: `.venv\Scripts\python.exe analysis\run_sql.py sql\02_q1_area_four_ways.sql` (and 03, 04).
+6. **Phase 2 – OGC services.** `analysis\prepare_dem.py` (clips the Copernicus DEM; the result is already committed), then
+   `analysis\run_sql.py sql\05_geoserver_views.sql` and `analysis\setup_geoserver.py` (REST: workspace, store, layers, SLD, DEM coverage).
+   Q4/Q5 evidence: `analysis\evidence_q4_q5.py`.
+7. **Phase 3 – analysis.** `analysis\prepare_worldpop.py` (downloads the 531 MB WorldPop India raster once, clip already committed), then run
+   `analysis/02_isochrones_h3.ipynb` top to bottom. It writes `hex_r8`, `hex_r9`, `isochrones_15min`, `buffers_1200m`, `q6_random_points`,
+   `worldpop_pixels` back to PostGIS; pg_tileserv and pg_featureserv pick the new tables up automatically.
+8. **Phase 4 – client.** `powershell -ExecutionPolicy Bypass -File client\fetch-vendor.ps1` once (MapLibre + PMTiles bundles), then
+   `.venv\Scripts\python.exe -m http.server 8088 --directory client` → http://localhost:8088 (the page detects `localhost` and uses the
+   Compose services). Q9 numbers: `analysis\measure_q9.py` (needs `pip install playwright && playwright install chromium`).
+9. **Phase 5A – public site.** `analysis\export_static.py` exports the layers to `client/data/`; every push to `main` runs
+   `.github/workflows/deploy-pages.yml` (tippecanoe → `punepg.pmtiles` → GitHub Pages). Q12 numbers: `analysis\measure_q12.py`.
+10. **Phase 5B – kind.** `powershell -ExecutionPolicy Bypass -File k8s\deploy.ps1` (cluster, image, Secret from `.env`, manifests), then
+    `kubectl -n punepg port-forward svc/client 8089:80` → http://localhost:8089. Q11 experiment: `k8s\q11_selfheal.ps1 -Label pvc|emptydir`.
 
 ## Sources and citations
 

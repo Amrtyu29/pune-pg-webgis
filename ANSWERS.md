@@ -230,7 +230,30 @@ a claim about *who* walks; the healthy-adult default overstates access for the e
 ## Phase 4 — Map client and performance
 
 ### Q9. Three ways to ship the same map
-_pending_
+
+Client: [`client/`](client/) (MapLibre GL JS). The three building modes are the last three checkboxes of the layer switcher.
+Measurement: [`analysis/measure_q9.py`](analysis/measure_q9.py) drives a headless Chromium with the cache disabled (the DevTools
+"Disable cache" setting, via CDP `Network.setCacheDisabled`), opens the client at the given zoom (centre 73.829 E 18.552 N, 1280 × 800 px),
+ticks one checkbox and records every response of that layer until MapLibre is idle; raw numbers in
+[`docs/outputs/q9_measurements.json`](docs/outputs/q9_measurements.json). "KB" = response bytes received; "time" = tick → last response.
+
+| Zoom | (a) tiled WMS PNG, GeoServer `GetMap` 256 px | (b) one WFS 2.0 GeoJSON `GetFeature` | (c) MVT from pg_tileserv `/public.buildings/{z}/{x}/{y}.pbf` |
+|---|---|---|---|
+| **12** | 16 requests · **193 KB** · 1.3 s | 1 request · **8,435 KB** · 2.7 s | 4 requests · **1,450 KB** · 0.9 s |
+| **14** | 16 requests · **711 KB** · 1.2 s | 1 request · **8,416 KB** · 5.1 s | 6 requests · **855 KB** · 1.3 s |
+| **16** | 20 requests · **226 KB** · 1.0 s | 1 request · **8,428 KB** · 2.7 s | 6 requests · **25 KB** · 0.5 s |
+
+(20,525 footprints in the area + 2 km. The WFS answer is the same 8.4 MB whatever the zoom; MapLibre then has to parse and index all of it in the
+browser, which is the extra 2–5 s. Times vary ±1 s between runs because all services share one laptop.)
+
+*Which breaks first as the area grows.* **(b) the single GeoJSON**: its cost is proportional to the *whole dataset*, not to what is on screen, so a
+city of two million buildings would mean an 800 MB download and a frozen tab, while the view at zoom 16 needs only a few hundred polygons.
+**(c) MVT** scales best: at zoom 16 the six tiles for the view weigh 25 KB, and at low zooms pg_tileserv already clips to the tile (1.4 MB at
+zoom 12 because every footprint in the area falls into four tiles; for a whole city one would add `--drop-densest`-style generalisation or a
+min-zoom). **(a) tiled WMS** also scales with the view, but every tile is a server-side render: 16–20 PNG requests per screen, nothing clickable,
+and a new render for every style change. **My earlier project (PuneStay)** loaded its data the (b) way: one `GET /listings?bbox=…` returning all
+matching listings as GeoJSON (capped at 500 rows) and one GeoJSON per nearby-services search; with 520 listings that is a few hundred KB and fine,
+but at city scale with every building or every POI it would behave exactly like column (b): one giant response, then the browser chokes.
 
 ## Phase 5 — Deploy it, for free
 

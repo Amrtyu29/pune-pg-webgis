@@ -4,7 +4,7 @@
     "mode": "a) tiled WMS PNG (GeoServer)",
     "requests": 16,
     "kb": 192.8,
-    "seconds": 0.04,
+    "seconds": 1.32,
     "statuses": [
       200
     ]
@@ -13,8 +13,8 @@
     "zoom": 12,
     "mode": "b) one WFS GeoJSON (GeoServer)",
     "requests": 1,
-    "kb": 8418.4,
-    "seconds": 1.81,
+    "kb": 8435.0,
+    "seconds": 2.66,
     "statuses": [
       200
     ]
@@ -24,7 +24,7 @@
     "mode": "c) MVT tiles (pg_tileserv)",
     "requests": 4,
     "kb": 1449.7,
-    "seconds": 0.02,
+    "seconds": 0.86,
     "statuses": [
       200
     ]
@@ -34,7 +34,7 @@
     "mode": "a) tiled WMS PNG (GeoServer)",
     "requests": 16,
     "kb": 710.7,
-    "seconds": 0.03,
+    "seconds": 1.22,
     "statuses": [
       200
     ]
@@ -43,8 +43,8 @@
     "zoom": 14,
     "mode": "b) one WFS GeoJSON (GeoServer)",
     "requests": 1,
-    "kb": 8432.7,
-    "seconds": 4.76,
+    "kb": 8415.5,
+    "seconds": 5.12,
     "statuses": [
       200
     ]
@@ -54,7 +54,7 @@
     "mode": "c) MVT tiles (pg_tileserv)",
     "requests": 6,
     "kb": 854.8,
-    "seconds": 0.05,
+    "seconds": 1.3,
     "statuses": [
       200
     ]
@@ -64,7 +64,7 @@
     "mode": "a) tiled WMS PNG (GeoServer)",
     "requests": 20,
     "kb": 226.2,
-    "seconds": 0.03,
+    "seconds": 1.02,
     "statuses": [
       200
     ]
@@ -73,8 +73,8 @@
     "zoom": 16,
     "mode": "b) one WFS GeoJSON (GeoServer)",
     "requests": 1,
-    "kb": 8411.0,
-    "seconds": 2.02,
+    "kb": 8428.3,
+    "seconds": 2.73,
     "statuses": [
       200
     ]
@@ -84,7 +84,7 @@
     "mode": "c) MVT tiles (pg_tileserv)",
     "requests": 6,
     "kb": 24.5,
-    "seconds": 0.02,
+    "seconds": 0.52,
     "statuses": [
       200
     ]

@@ -1,0 +1,22 @@
+﻿NAME                          READY   STATUS    RESTARTS   AGE
+pod/client-55df6ccd79-l98p7   1/1     Running   0          6m47s
+pod/postgis-0                 1/1     Running   0          2m9s
+
+NAME              TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+service/client    ClusterIP   10.96.249.194   <none>        80/TCP     6m47s
+service/postgis   ClusterIP   None            <none>        5432/TCP   2m9s
+
+NAME                     READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/client   1/1     1            1           6m47s
+
+NAME                                DESIRED   CURRENT   READY   AGE
+replicaset.apps/client-55df6ccd79   1         1         1       6m47s
+
+NAME                       READY   AGE
+statefulset.apps/postgis   1/1     2m9s
+
+NAME                                   STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   VOLUMEATTRIBUTESCLASS   AGE
+persistentvolumeclaim/data-postgis-0   Bound    pvc-212eded8-2a7d-42f5-8f9c-8a89fa785e8e   2Gi        RWO            standard       <unset>                 6m47s
+
+NAME                    TYPE     DATA   AGE
+secret/postgis-secret   Opaque   3      6m48s
