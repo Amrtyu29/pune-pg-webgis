@@ -1,0 +1,75 @@
+-- sql/04_q3_data_quality.sql  run at 2026-11-19 15:28:24
+
+-- Q3. Data quality of the OSM services inside Prabhag 11.
+-- 3a. Share of services with no name tag
+SELECT count(*)                                         AS services_in_area,
+       count(*) FILTER (WHERE name IS NULL)             AS without_name,
+       round(100.0 * count(*) FILTER (WHERE name IS NULL) / count(*), 1) AS percent_without_name
+FROM services
+WHERE inside_area;
+services_in_area | without_name | percent_without_name
+19 | 3 | 15.8
+(1 rows, 1.4 ms wall)
+
+-- 3b. Pairs of services within 25 m of each other (each pair counted once: a.id < b.id)
+SELECT count(*) AS pairs_within_25m
+FROM services a
+JOIN services b ON a.service_id < b.service_id
+               AND ST_DWithin(a.geom_utm, b.geom_utm, 25)
+WHERE a.inside_area AND b.inside_area;
+pairs_within_25m
+0
+(1 rows, 8.2 ms wall)
+
+-- 3b. The pairs themselves, with the distance in metres
+SELECT a.service_id AS id_a, a.name AS name_a, b.service_id AS id_b, b.name AS name_b,
+       round(ST_Distance(a.geom_utm, b.geom_utm)::numeric, 1) AS distance_m
+FROM services a
+JOIN services b ON a.service_id < b.service_id
+               AND ST_DWithin(a.geom_utm, b.geom_utm, 25)
+WHERE a.inside_area AND b.inside_area
+ORDER BY distance_m;
+id_a | name_a | id_b | name_b | distance_m
+(0 rows, 1.1 ms wall)
+
+-- 3c. Breakdown by type and by OSM element type (node vs way), named vs unnamed
+SELECT service_type, element_type,
+       count(*) AS n,
+       count(*) FILTER (WHERE name IS NOT NULL) AS named
+FROM services
+WHERE inside_area
+GROUP BY service_type, element_type
+ORDER BY service_type, element_type;
+service_type | element_type | n | named
+guest_house | way | 1 | 1
+hostel | node | 10 | 7
+hostel | way | 8 | 8
+(3 rows, 0.9 ms wall)
+
+-- 3d. The full list, for the five-service verification against a second source
+SELECT service_id, name, service_type, element_type, osmid,
+       round(ST_Y(geom)::numeric, 5) AS lat, round(ST_X(geom)::numeric, 5) AS lon
+FROM services
+WHERE inside_area
+ORDER BY service_id;
+service_id | name | service_type | element_type | osmid | lat | lon
+3 |  | hostel | node | 4516839589 | 18.55588 | 73.82152
+4 |  | hostel | node | 4516839590 | 18.55566 | 73.82167
+7 |  | hostel | node | 6164988185 | 18.55643 | 73.82190
+8 | International Girls Hostel | hostel | node | 6643174622 | 18.55696 | 73.82217
+9 | International Boys Hostel | hostel | node | 10172982148 | 18.55761 | 73.82226
+10 | Boys Hostel - NO 9 | hostel | node | 10297944218 | 18.55854 | 73.82294
+11 | Hostel No. 6 | hostel | node | 10297949409 | 18.55878 | 73.82223
+14 | Nalanda | hostel | node | 12247311517 | 18.55906 | 73.82484
+15 | L 10 | hostel | node | 13850565396 | 18.55120 | 73.82906
+16 | Colonial Hearth Mubarak | hostel | node | 13982374992 | 18.53408 | 73.83509
+32 | Girls' Hostel Pune University | hostel | way | 993387170 | 18.55071 | 73.82858
+33 | Pune University Guest House | guest_house | way | 1034696718 | 18.55510 | 73.82517
+41 | Boys Hostel No. 1 | hostel | way | 290985112 | 18.54461 | 73.82926
+42 | Boys Hostel No.2 | hostel | way | 290985113 | 18.54404 | 73.82938
+43 | Boys Hostel No.7 | hostel | way | 290985114 | 18.54468 | 73.82979
+44 | Boys Hostel No.8 | hostel | way | 290985829 | 18.54527 | 73.82983
+46 | Gents Hostel no 4 | hostel | way | 359914876 | 18.54604 | 73.83012
+47 | girls hostel No 3 | hostel | way | 359927056 | 18.55113 | 73.82852
+54 | Boys Hostel Office | hostel | way | 1422097415 | 18.54513 | 73.82898
+(19 rows, 0.7 ms wall)

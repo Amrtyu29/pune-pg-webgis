@@ -1,0 +1,22 @@
+=== Q4. The axis-order trap ===
+GetCapabilities 1.3.0: http://localhost:8080/geoserver/punepg/wms?service=WMS&version=1.3.0&request=GetCapabilities
+services layer BoundingBox in the 1.3.0 capabilities: <BoundingBox CRS="EPSG:4326" minx="18.5124766" miny="73.7980591" maxx="18.5648147" maxy="73.85224091613597"/>
+  (in WMS 1.3.0 + EPSG:4326, minx/maxx are LATITUDES and miny/maxy are LONGITUDES, because EPSG:4326 is defined lat,lon)
+GetMap 111: http://localhost:8080/geoserver/punepg/wms?service=WMS&request=GetMap&layers=punepg%3Aservices%2Cpunepg%3Aarea&styles=&format=image%2Fpng&width=600&height=600&transparent=false&bgcolor=0xFFFFFF&version=1.1.1&srs=EPSG%3A4326&bbox=18.5124766%2C73.7980591%2C18.5648147%2C73.85224091613597
+  -> HTTP 200, image/png, 5819 bytes, saved docs/screenshots/q4_getmap_111.png
+GetMap 130: http://localhost:8080/geoserver/punepg/wms?service=WMS&request=GetMap&layers=punepg%3Aservices%2Cpunepg%3Aarea&styles=&format=image%2Fpng&width=600&height=600&transparent=false&bgcolor=0xFFFFFF&version=1.3.0&crs=EPSG%3A4326&bbox=18.5124766%2C73.7980591%2C18.5648147%2C73.85224091613597
+  -> HTTP 200, image/png, 45256 bytes, saved docs/screenshots/q4_getmap_130.png
+GetMap 1.1.1 with the box rewritten as lon/lat (73.7980591,18.5124766,73.85224091613597,18.5648147): http://localhost:8080/geoserver/punepg/wms?service=WMS&request=GetMap&layers=punepg%3Aservices%2Cpunepg%3Aarea&styles=&format=image%2Fpng&width=600&height=600&transparent=false&bgcolor=0xFFFFFF&version=1.1.1&srs=EPSG%3A4326&bbox=73.7980591%2C18.5124766%2C73.85224091613597%2C18.5648147
+  -> 45256 bytes, saved docs/screenshots/q4_getmap_111_lonlat.png
+
+=== Q5. WFS 2.0 with a filter, two formats ===
+resultType=hits: http://localhost:8080/geoserver/punepg/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=punepg%3Aservices&CQL_FILTER=name+IS+NOT+NULL+AND+inside_area+%3D+true&resultType=hits
+  -> numberMatched=16
+GML 3.2:  http://localhost:8080/geoserver/punepg/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=punepg%3Aservices&CQL_FILTER=name+IS+NOT+NULL+AND+inside_area+%3D+true&outputFormat=application%2Fgml%2Bxml%3B+version%3D3.2
+  -> 16.1 KB, numberMatched=16, Content-Type=application/gml+xml; version=3.2
+  first point <gml:pos>: 18.557 73.8222   (lat lon: EPSG:4326 axis order in GML 3.2)
+  srsName in the GML: urn:ogc:def:crs:EPSG::4326
+GeoJSON:  http://localhost:8080/geoserver/punepg/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=punepg%3Aservices&CQL_FILTER=name+IS+NOT+NULL+AND+inside_area+%3D+true&outputFormat=application%2Fjson
+  -> 6.2 KB, numberMatched=16, numberReturned=16
+  first point coordinates: [73.8222, 18.557]   (lon, lat: GeoJSON always uses x,y = longitude,latitude)
+  first feature name: International Girls Hostel

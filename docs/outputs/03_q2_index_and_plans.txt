@@ -1,0 +1,149 @@
+-- sql/03_q2_index_and_plans.sql  run at 2026-11-19 15:28:22
+
+-- Q2. Indexes and query plans.
+-- Count buildings within 500 m of each service point (UTM geometry, so 500 really is metres).
+-- Run 1: no spatial index on the UTM columns. Expect a Seq Scan on buildings inside a Nested Loop.
+DROP INDEX IF EXISTS buildings_geom_utm_gist;
+OK (DROP INDEX, 0.8 ms wall)
+
+DROP INDEX IF EXISTS services_geom_utm_gist;
+OK (DROP INDEX, 0.7 ms wall)
+
+-- 2a. WITHOUT a GiST index
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT s.service_id, s.name, count(b.building_id) AS buildings_within_500m
+FROM services s
+LEFT JOIN buildings b ON ST_DWithin(s.geom_utm, b.geom_utm, 500)
+WHERE s.inside_area
+GROUP BY s.service_id, s.name
+ORDER BY s.service_id;
+GroupAggregate  (cost=0.14..4881406.00 rows=19 width=36) (actual time=256.463..415.685 rows=19 loops=1)
+  Group Key: s.service_id
+  Buffers: shared hit=1665 read=1 dirtied=1, temp read=7236 written=402
+  ->  Nested Loop Left Join  (cost=0.14..4881404.70 rows=221 width=36) (actual time=237.876..415.392 rows=3281 loops=1)
+        Join Filter: st_dwithin(s.geom_utm, b.geom_utm, '500'::double precision)
+        Rows Removed by Join Filter: 386694
+        Buffers: shared hit=1665 read=1 dirtied=1, temp read=7236 written=402
+        ->  Index Scan using services_pkey on services s  (cost=0.14..13.95 rows=19 width=60) (actual time=236.999..237.098 rows=19 loops=1)
+              Filter: inside_area
+              Rows Removed by Filter: 35
+              Buffers: shared hit=93 read=1 dirtied=1
+        ->  Materialize  (cost=0.00..1879.88 rows=20525 width=152) (actual time=0.005..2.557 rows=20525 loops=19)
+              Buffers: shared hit=1572, temp read=7236 written=402
+              ->  Seq Scan on buildings b  (cost=0.00..1777.25 rows=20525 width=152) (actual time=0.050..3.995 rows=20525 loops=1)
+                    Buffers: shared hit=1572
+Planning:
+  Buffers: shared hit=232
+Planning Time: 7.610 ms
+JIT:
+  Functions: 13
+  Options: Inlining true, Optimization true, Expressions true, Deforming true
+  Timing: Generation 0.588 ms, Inlining 78.277 ms, Optimization 99.017 ms, Emission 59.683 ms, Total 237.566 ms
+Execution Time: 431.987 ms
+
+-- 2b. Create the GiST index (an R-tree of bounding boxes) and refresh planner statistics
+CREATE INDEX buildings_geom_utm_gist ON buildings USING GIST (geom_utm);
+OK (CREATE INDEX, 33.6 ms wall)
+
+CREATE INDEX services_geom_utm_gist  ON services  USING GIST (geom_utm);
+OK (CREATE INDEX, 5.7 ms wall)
+
+ANALYZE buildings;
+OK (ANALYZE, 101.6 ms wall)
+
+ANALYZE services;
+OK (ANALYZE, 2.7 ms wall)
+
+-- 2b. WITH the GiST index: expect an Index Scan / Bitmap Index Scan on buildings_geom_utm_gist
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT s.service_id, s.name, count(b.building_id) AS buildings_within_500m
+FROM services s
+LEFT JOIN buildings b ON ST_DWithin(s.geom_utm, b.geom_utm, 500)
+WHERE s.inside_area
+GROUP BY s.service_id, s.name
+ORDER BY s.service_id;
+Sort  (cost=711.88..711.93 rows=19 width=36) (actual time=3.829..3.831 rows=19 loops=1)
+  Sort Key: s.service_id
+  Sort Method: quicksort  Memory: 26kB
+  Buffers: shared hit=3919 read=18
+  ->  HashAggregate  (cost=711.29..711.48 rows=19 width=36) (actual time=3.819..3.822 rows=19 loops=1)
+        Group Key: s.service_id
+        Batches: 1  Memory Usage: 24kB
+        Buffers: shared hit=3919 read=18
+        ->  Nested Loop Left Join  (cost=0.40..710.18 rows=221 width=36) (actual time=0.059..3.441 rows=3281 loops=1)
+              Buffers: shared hit=3919 read=18
+              ->  Seq Scan on services s  (cost=0.00..2.54 rows=19 width=60) (actual time=0.005..0.014 rows=19 loops=1)
+                    Filter: inside_area
+                    Rows Removed by Filter: 35
+                    Buffers: shared hit=2
+              ->  Index Scan using buildings_geom_utm_gist on buildings b  (cost=0.40..37.22 rows=2 width=152) (actual time=0.015..0.166 rows=173 loops=19)
+                    Index Cond: (geom_utm && st_expand(s.geom_utm, '500'::double precision))
+                    Filter: st_dwithin(s.geom_utm, geom_utm, '500'::double precision)
+                    Rows Removed by Filter: 50
+                    Buffers: shared hit=3917 read=18
+Planning:
+  Buffers: shared hit=61 read=4 dirtied=2
+Planning Time: 0.604 ms
+Execution Time: 3.881 ms
+
+-- 2c. Same question written as ST_Distance(a, b) < 500, index still present.
+-- ST_Distance is a plain function returning a number, so the planner cannot use the index: Seq Scan again.
+EXPLAIN (ANALYZE, BUFFERS)
+SELECT s.service_id, s.name, count(b.building_id) AS buildings_within_500m
+FROM services s
+LEFT JOIN buildings b ON ST_Distance(s.geom_utm, b.geom_utm) < 500
+WHERE s.inside_area
+GROUP BY s.service_id, s.name
+ORDER BY s.service_id;
+GroupAggregate  (cost=0.14..4883029.79 rows=19 width=36) (actual time=182.766..373.121 rows=19 loops=1)
+  Group Key: s.service_id
+  Buffers: shared hit=1575, temp read=7236 written=402
+  ->  Nested Loop Left Join  (cost=0.14..4882379.64 rows=129992 width=36) (actual time=164.046..372.830 rows=3281 loops=1)
+        Join Filter: (st_distance(s.geom_utm, b.geom_utm) < '500'::double precision)
+        Rows Removed by Join Filter: 386694
+        Buffers: shared hit=1575, temp read=7236 written=402
+        ->  Index Scan using services_pkey on services s  (cost=0.14..13.95 rows=19 width=60) (actual time=163.672..163.736 rows=19 loops=1)
+              Filter: inside_area
+              Rows Removed by Filter: 35
+              Buffers: shared hit=3
+        ->  Materialize  (cost=0.00..1879.88 rows=20525 width=152) (actual time=0.003..2.551 rows=20525 loops=19)
+              Buffers: shared hit=1572, temp read=7236 written=402
+              ->  Seq Scan on buildings b  (cost=0.00..1777.25 rows=20525 width=152) (actual time=0.015..3.396 rows=20525 loops=1)
+                    Buffers: shared hit=1572
+Planning:
+  Buffers: shared hit=36
+Planning Time: 0.108 ms
+JIT:
+  Functions: 13
+  Options: Inlining true, Optimization true, Expressions true, Deforming true
+  Timing: Generation 0.715 ms, Inlining 8.507 ms, Optimization 95.068 ms, Emission 60.110 ms, Total 164.400 ms
+Execution Time: 374.313 ms
+
+-- The actual answer (the counts themselves), for the record
+SELECT s.service_id, s.name, s.service_type, count(b.building_id) AS buildings_within_500m
+FROM services s
+LEFT JOIN buildings b ON ST_DWithin(s.geom_utm, b.geom_utm, 500)
+WHERE s.inside_area
+GROUP BY s.service_id, s.name, s.service_type
+ORDER BY buildings_within_500m DESC;
+service_id | name | service_type | buildings_within_500m
+16 | Colonial Hearth Mubarak | hostel | 599
+43 | Boys Hostel No.7 | hostel | 194
+42 | Boys Hostel No.2 | hostel | 185
+41 | Boys Hostel No. 1 | hostel | 182
+14 | Nalanda | hostel | 180
+44 | Boys Hostel No.8 | hostel | 173
+54 | Boys Hostel Office | hostel | 161
+46 | Gents Hostel no 4 | hostel | 153
+11 | Hostel No. 6 | hostel | 150
+4 |  | hostel | 144
+10 | Boys Hostel - NO 9 | hostel | 144
+8 | International Girls Hostel | hostel | 143
+3 |  | hostel | 141
+7 |  | hostel | 140
+9 | International Boys Hostel | hostel | 138
+32 | Girls' Hostel Pune University | hostel | 123
+15 | L 10 | hostel | 120
+47 | girls hostel No 3 | hostel | 119
+33 | Pune University Guest House | guest_house | 92
+(19 rows, 4.3 ms wall)

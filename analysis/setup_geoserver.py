@@ -85,16 +85,21 @@ if not exists(f"/workspaces/{WS}/datastores/{STORE}.json"):
 else:
     print("datastore exists", STORE)
 
-# 3. feature types (layers) from the Phase 1 tables
+# 3. feature types (layers). Published from the gs_* VIEWS (sql/05_geoserver_views.sql), which expose only the
+#    EPSG:4326 geometry: with both geom and geom_utm visible, GeoServer mixed degrees and metres in the bounding box.
 for table, title in [("area", "Prabhag 11 study area"), ("services", "PGs and hostels (OSM)"), ("buildings", "Building footprints (OSM)")]:
     path = f"/workspaces/{WS}/datastores/{STORE}/featuretypes/{table}.json"
     if exists(path):
-        print("layer exists", table)
-        continue
+        current = requests.get(REST + path, auth=AUTH, headers=JSON, timeout=60).json()["featureType"]
+        if current.get("nativeName") == f"gs_{table}":
+            print("layer exists", table)
+            continue
+        requests.delete(REST + path, params={"recurse": "true"}, auth=AUTH, timeout=60)   # re-publish from the view
+        print("removed old layer", table)
     post(f"/workspaces/{WS}/datastores/{STORE}/featuretypes", {"featureType": {
-        "name": table, "nativeName": table, "title": title, "srs": "EPSG:4326", "enabled": True,
+        "name": table, "nativeName": f"gs_{table}", "title": title, "srs": "EPSG:4326", "enabled": True,
         "projectionPolicy": "FORCE_DECLARED"}})
-    print("published layer", table)
+    print("published layer", table, "from view gs_" + table)
 
 # 4. style from sld/services.sld, attached to the services layer
 sld = (ROOT / "sld" / "services.sld").read_text(encoding="utf-8")
@@ -112,13 +117,19 @@ print("services layer now uses style punepg:services")
 
 # 5. DEM coverage store from the file mounted at /opt/dem inside the GeoServer container
 if not exists(f"/workspaces/{WS}/coveragestores/dem.json"):
-    put(f"/workspaces/{WS}/coveragestores/dem/external.geotiff?configure=first&coverageName=dem",
-        data="file:///opt/dem/dem_prabhag11.tif", content_type="text/plain")
-    put(f"/workspaces/{WS}/coveragestores/dem/coverages/dem", json={"coverage": {
-        "title": "Copernicus GLO-30 DEM, Prabhag 11 + 2 km (m)", "enabled": True}})
-    print("created coverage dem")
+    post(f"/workspaces/{WS}/coveragestores", {"coverageStore": {
+        "name": "dem", "type": "GeoTIFF", "enabled": True, "workspace": {"name": WS},
+        "url": "file:///opt/dem/dem_prabhag11.tif"}})
+    print("created coverage store dem")
 else:
     print("coverage store exists dem")
+if not exists(f"/workspaces/{WS}/coveragestores/dem/coverages/dem.json"):
+    post(f"/workspaces/{WS}/coveragestores/dem/coverages", {"coverage": {
+        "name": "dem", "nativeName": "dem_prabhag11", "title": "Copernicus GLO-30 DEM, Prabhag 11 + 2 km (m)",
+        "srs": "EPSG:4326", "enabled": True}})
+    print("published coverage dem (WMS + WCS)")
+else:
+    print("coverage exists dem")
 
 # 6. summary
 layers = requests.get(REST + f"/workspaces/{WS}/layers.json", auth=AUTH, headers=JSON, timeout=60).json()
