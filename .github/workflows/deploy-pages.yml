@@ -1,0 +1,76 @@
+# Builds the serverless map and publishes it to GitHub Pages on every push to main.
+#
+#  1. tippecanoe turns the exported GeoJSON (H3 hexagons, buildings) into vector tiles and writes them
+#     as ONE .pmtiles archive (no tile server needed: MapLibre fetches byte ranges from the file).
+#  2. npm fetches the exact MapLibre GL JS / PMTiles browser bundles into client/vendor.
+#  3. The client folder is uploaded as the Pages artifact and deployed.
+name: Deploy map to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install tippecanoe (vector tiles + PMTiles writer)
+        run: |
+          sudo apt-get update -qq
+          if ! sudo apt-get install -y -qq tippecanoe; then
+            # fallback: build the Felt fork from source (takes ~2 min)
+            sudo apt-get install -y -qq build-essential libsqlite3-dev zlib1g-dev
+            git clone --depth 1 https://github.com/felt/tippecanoe.git /tmp/tippecanoe
+            make -C /tmp/tippecanoe -j"$(nproc)" && sudo make -C /tmp/tippecanoe install
+          fi
+          tippecanoe --version
+
+      - name: Build punepg.pmtiles from the exported GeoJSON
+        run: |
+          tippecanoe -o client/data/punepg.pmtiles --force \
+            --named-layer=hex_r8:client/data/tiles-src/hex_r8.geojson \
+            --named-layer=hex_r9:client/data/tiles-src/hex_r9.geojson \
+            --named-layer=buildings:client/data/tiles-src/buildings.geojson \
+            --minimum-zoom=10 --maximum-zoom=16 \
+            --no-feature-limit --no-tile-size-limit --detect-shared-borders
+          ls -l client/data/punepg.pmtiles
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Vendor MapLibre GL JS and PMTiles
+        working-directory: client
+        run: |
+          npm install --no-audit --no-fund
+          mkdir -p vendor
+          cp node_modules/maplibre-gl/dist/maplibre-gl.js node_modules/maplibre-gl/dist/maplibre-gl.css node_modules/pmtiles/dist/pmtiles.js vendor/
+          rm -rf node_modules data/tiles-src
+          touch .nojekyll
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: client
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
