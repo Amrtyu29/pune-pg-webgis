@@ -7,10 +7,9 @@ __pycache__/
 *.pyc
 .ipynb_checkpoints/
 
-# Raw / large data (brief: no large raw files, every file under 100 MB)
+# Raw / large data (brief: no large raw files, every file under 100 MB).
+# The clipped DEM in data/dem/ is ~170 KB and IS committed so the stack runs from the README alone.
 data/raw/
-data/dem/*.tif
-!data/dem/.gitkeep
 data/worldpop/
 *.osm.pbf
 *.graphml

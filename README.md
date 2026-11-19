@@ -73,7 +73,9 @@ _(Phases 2–5 setup steps are added as they are built.)_
   has no PMC ward boundaries, so this official-map tracing is used instead of an OSM admin boundary).
 * **OpenStreetMap** data © OpenStreetMap contributors, ODbL, downloaded with OSMnx (Boeing, 2017) and checked with the Overpass API.
 * **Population:** WorldPop, India 2020 constrained 100 m (`ind_ppp_2020_constrained.tif`), CC BY 4.0, DOI 10.5258/SOTON/WP00684.
-* **Elevation:** _(DEM source recorded in Phase 2)_.
+* **Elevation:** Copernicus DEM GLO-30 (ESA / Airbus, 30 m), tile `Copernicus_DSM_COG_10_N18_00_E073_00_DEM` from the
+  AWS Open Data bucket `copernicus-dem-30m`, clipped to the ward + 2 km by `analysis/prepare_dem.py` into
+  `data/dem/dem_prabhag11.tif` (166 KB, committed). Chosen over SRTM because it needs no account or API key.
 * **Software:** PostgreSQL 16 + PostGIS 3.5 (`postgis/postgis`), GeoServer 2.27 (`docker.osgeo.org/geoserver`), pg_tileserv and pg_featureserv (CrunchyData, `pramsey/*` images), OSMnx, GeoPandas, h3-py, MapLibre GL JS, tippecanoe, PMTiles, kind, kubectl.
 * **Tutorials and references used:** OGC WMS 1.1.1 / 1.3.0 and WFS 2.0 specifications, PostGIS manual (spatial indexes, geography), GeoServer user manual (SLD cookbook), H3 docs, OSMnx docs, Docker "Get started" guide, Kubernetes Basics tutorial, Protomaps PMTiles docs.
 * AI assistance: Claude (Anthropic) was used as a coding and study partner; every line was reviewed and can be explained and modified at the viva.
