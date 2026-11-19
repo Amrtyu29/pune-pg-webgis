@@ -1,0 +1,104 @@
+# Local Web GIS stack for the assignment: one Compose network with four services.
+# Inside this network every container reaches another by its SERVICE NAME as hostname
+# (for example pg_tileserv connects to "db:5432", not "localhost:5432").
+# Credentials come from .env (git-ignored); .env.example lists the variable names.
+#
+#   docker compose up -d          start everything
+#   docker compose ps             all four should show "healthy"
+#   docker compose down           stop (data stays in the named volumes)
+#   docker compose down -v        stop AND delete the database and GeoServer data
+
+name: pune-pg-webgis
+
+services:
+
+  # 1. PostgreSQL 16 + PostGIS 3.5: the spatial database every other service reads from.
+  db:
+    image: postgis/postgis:16-3.5
+    container_name: pg_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT:-5434}:5432"        # host:container
+    volumes:
+      - pgdata:/var/lib/postgresql/data      # named volume so data survives "docker compose down"
+      - ./sql/init:/docker-entrypoint-initdb.d:ro   # *.sql here run once, on first start only
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # 2. GeoServer: publishes WMS / WFS / WCS from the PostGIS tables and the DEM GeoTIFF.
+  geoserver:
+    image: docker.osgeo.org/geoserver:2.27.2
+    container_name: pg_geoserver
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      GEOSERVER_ADMIN_USER: ${GEOSERVER_ADMIN_USER}
+      GEOSERVER_ADMIN_PASSWORD: ${GEOSERVER_ADMIN_PASSWORD}
+      SKIP_DEMO_DATA: "true"
+      CORS_ENABLED: "true"                   # lets the MapLibre client on another port call WMS/WFS
+      EXTRA_JAVA_OPTS: "-Xms256m -Xmx1g"
+    ports:
+      - "${GEOSERVER_PORT:-8080}:8080"
+    volumes:
+      - geoserver_data:/opt/geoserver_data
+      - ./data/dem:/opt/dem:ro               # clipped DEM GeoTIFF, mounted read-only for the coverage store
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/geoserver/web/ > /dev/null || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 15
+      start_period: 90s                      # Tomcat + GeoServer need a minute to boot
+    restart: unless-stopped
+
+  # 3. pg_tileserv: serves every spatial table as MVT vector tiles straight from PostGIS.
+  tileserv:
+    image: pramsey/pg_tileserv:latest
+    container_name: pg_tileserv
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # host is the service name "db", port is the CONTAINER port 5432 (not the host-mapped one)
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    ports:
+      - "${TILESERV_PORT:-7800}:7800"
+    healthcheck:
+      # The image has bash but no curl/wget, so we open a raw TCP connection to the port instead:
+      # bash's /dev/tcp pseudo-device succeeds only when something is listening on 7800.
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/7800"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+
+  # 4. pg_featureserv: OGC API - Features (JSON/REST successor to WFS) from the same tables.
+  featureserv:
+    image: pramsey/pg_featureserv:latest
+    container_name: pg_featureserv
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    ports:
+      - "${FEATURESERV_PORT:-9000}:9000"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/9000"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  geoserver_data:

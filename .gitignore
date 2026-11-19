@@ -1,0 +1,26 @@
+# Secrets: never commit the real .env (only .env.example with variable names)
+.env
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Raw / large data (brief: no large raw files, every file under 100 MB)
+data/raw/
+data/dem/*.tif
+!data/dem/.gitkeep
+data/worldpop/
+*.osm.pbf
+*.graphml
+*.pmtiles
+
+# Node
+node_modules/
+client/dist/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
