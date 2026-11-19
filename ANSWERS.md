@@ -156,14 +156,76 @@ http://localhost:8080/geoserver/punepg/wfs?service=WFS&version=2.0.0&request=Get
 
 ## Phase 3 — Was the earlier "nearest" right?
 
+All Phase 3 numbers come from [`analysis/02_isochrones_h3.ipynb`](analysis/02_isochrones_h3.ipynb) (run top to bottom; results also in
+[`docs/outputs/phase3_results.json`](docs/outputs/phase3_results.json)). Walking graph: OSMnx `network_type="walk"`, area + 2 km, 6,645 nodes / 8,545 undirected edges,
+projected to UTM 43N. Speed 4.8 km/h → **1,200 m in 15 min**; destinations = all 54 PGs/hostels in the ward **and** the 2 km margin (19 inside).
+Isochrone = all street segments reachable within 1,200 m of the service's nearest node (`networkx.ego_graph`, `distance="length"`), buffered 30 m.
+Population = WorldPop 2020 constrained 100 m, **98,234 people** in the ward (685 populated pixels), every pixel assigned to exactly one H3 cell.
+
 ### Q6. Straight line vs street network
-_pending_
+
+30 random points inside the ward (seed 20261119; table `q6_random_points` in PostGIS). For each: nearest service by straight line (UTM Euclidean,
+what PuneStay's `ST_DWithin(geography)` search effectively ranked by) and by walking network (Dijkstra from the point's nearest node to every service node,
+plus the two snap distances).
+
+| Measure | Result |
+|---|---|
+| Nearest service is a **different** one by network than by straight line | **13 of 30 points (43 %)** |
+| Ratio network / straight-line distance | **median 1.55, maximum 4.57** |
+| Largest ratio overall | point 21: 46 m straight, 209 m walking (×4.57), a hostel just across a campus fence |
+| Worst case among points ≥ 300 m from a service (the one mapped) | **point 16** (18.55306 N, 73.83177 E): straight line 352 m to *L 10* hostel (#15), walking 1,256 m to a different hostel (#26) → **×3.57** |
+| Largest absolute detour | point 23: 2,391 m straight, 3,583 m walking (+1,192 m) |
+
+![Q6 worst case](docs/screenshots/q6_worst_case.png)
+
+*Barrier.* Point 16 lies just outside the eastern boundary wall of the Savitribai Phule Pune University campus. The straight line (orange) cuts through the
+wall to the *L 10* hostel block; on foot (blue) one has to go round the campus perimeter to a gate, so the nearest hostel on the network is a different one.
+**Gated campus walls** are the dominant barrier in this ward; the SPPU campus, IUCAA, the NCL and the Khadki cantonment all have few gates. The median
+detour factor of 1.55 is well above the 1.2 to 1.3 typical of an open street grid, and 43 % of "nearest" answers from my earlier project would have
+pointed at the wrong hostel.
 
 ### Q7. Coverage and the MAUP
-_pending_
+
+Share of the ward's population **beyond 1,200 m** of the nearest PG/hostel, by network and by straight-line buffer, at four levels of aggregation
+(a unit is "covered" when its centre is within the threshold; at pixel level each 100 m pixel judges itself):
+
+| Unit of analysis | units | % population beyond 1,200 m, **network** | % beyond 1,200 m, **buffer** |
+|---|---|---|---|
+| WorldPop pixel, 100 m (reference) | 685 | **54.3 %** | 28.8 % |
+| H3 resolution 9 (≈0.105 km²) | 95 | 53.4 % | 27.6 % |
+| H3 resolution 8 (≈0.74 km²) | 22 | 56.4 % | 29.8 % |
+| Ward as one unit (its centroid) | 1 | **0 %** | 0 % |
+
+Area covered inside the ward: isochrones 32.4 %, buffers 80.2 % ([map](docs/screenshots/q7_isochrone_vs_buffer.png)).
+Worst-served populated res-9 cell (≥ 50 people): **`89608851867ffff`** (127 people, centre 18.57348 N 73.84441 E): straight line 2,609 m, **walking 5,198 m**
+to *Nalanda* hostel. The route (`analysis/explain_worst_cell.py`) goes over **New Harris Bridge** across the Mula river, along the Old Pune–Mumbai Highway and
+into the campus by the IUCAA back road: the river is crossable only at that bridge. Next worst: `89608851b93ffff` (1,040 people, 3,683 m) in the same
+Bopodi pocket north of the river.
+
+![H3 res 8 vs res 9](docs/screenshots/q7_h3_network_distance.png)
+
+*Does the conclusion change with the unit?* The **method** matters far more than the unit: buffers say 29 % of residents are left out, the street network says
+54 %, almost double, because the campus walls and the Mula river make straight-line reach meaningless here. Across H3 8 and 9 and the pixel level the
+network figure only moves between 53 and 56 %, so hexagons of either size give an honest answer; but the ward as a single unit says **nobody** is left out
+(its centroid sits 900 m from a campus hostel), which is the modifiable areal unit problem at its most extreme: the same 98,234 people, the same hostels,
+and the answer flips from "half excluded" to "all served" purely by choosing a coarse zone. Resolution 8 also hides *where*: its 22 cells smear the
+Bopodi pocket north of the river into cells that straddle the river, while resolution 9 isolates the 5 worst cells holding about 3,500 people.
 
 ### Q8. Who is the model for?
-_pending_
+
+Same network, walking speed **3.6 km/h** (elderly walkers): 15 min = **900 m**.
+
+| Unit | % population covered @ 4.8 km/h | % covered @ 3.6 km/h | percentage points lost |
+|---|---|---|---|
+| WorldPop pixel, 100 m | 45.7 % | 33.2 % | **−12.4 pp** |
+| H3 res 9 | 46.6 % | 38.7 % | −7.8 pp |
+| H3 res 8 | 43.6 % | 38.7 % | −4.9 pp |
+
+At pixel level **12.4 percentage points** of the population, about **12,200 people**, drop out of 15-minute reach when the model is built for a slower walker.
+At res 9, 11 cells holding 7,686 people flip from covered to not covered; they form a ring 900–1,200 m along the streets from the campus hostels: the
+Ganeshkhind Road / Aundh Road frontage west of the campus and the southern tip of the ward near Shivajinagar (dark-green core stays, the light-green
+fringe disappears; see the `covered_net_slow` column of `hex_r9` and the "isochrone 900 m" layer in the client). The lesson: a "15-minute" claim is really
+a claim about *who* walks; the healthy-adult default overstates access for the elderly by a quarter of the covered population in this ward.
 
 ## Phase 4 — Map client and performance
 
