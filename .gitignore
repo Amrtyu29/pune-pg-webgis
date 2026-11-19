@@ -10,7 +10,7 @@ __pycache__/
 # Raw / large data (brief: no large raw files, every file under 100 MB).
 # The clipped DEM in data/dem/ is ~170 KB and IS committed so the stack runs from the README alone.
 data/raw/
-data/worldpop/
+# (data/worldpop/worldpop_prabhag11.tif is a 19 KB clip and IS committed; the 531 MB national file stays in data/raw)
 *.osm.pbf
 *.graphml
 *.pmtiles
