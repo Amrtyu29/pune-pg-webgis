@@ -10,6 +10,11 @@ header h1 { font-size: 15px; font-weight: 600; margin: 0; }
 #panel label { display: block; margin: 4px 0; }
 #panel label.sub { margin-left: 22px; color: #444; }
 #panel select { margin-left: 4px; }
+#panel input[type=range] { width: 150px; vertical-align: middle; }
+#live-out { background: #fff; border: 1px solid #e5e7eb; border-radius: 6px; padding: 6px 8px; margin-top: 4px; }
+#live-out ol { margin: 4px 0 0; padding-left: 18px; }
+#live-out li { margin: 2px 0; }
+#live-out .far { color: #999; }
 .small { font-size: 11.5px; color: #555; line-height: 1.4; }
 #legend .row { display: flex; align-items: center; gap: 8px; margin: 2px 0; }
 #legend .sw { width: 18px; height: 12px; border: 1px solid #999; display: inline-block; }

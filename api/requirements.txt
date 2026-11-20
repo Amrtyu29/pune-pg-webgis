@@ -1,0 +1,6 @@
+# Bonus API (runs inside the "api" container built from api/Dockerfile)
+fastapi>=0.115,<1          # the web framework: routes, query-parameter validation, automatic /docs page
+uvicorn[standard]>=0.32    # the ASGI server that runs the FastAPI app
+psycopg[binary]>=3.2       # PostgreSQL driver (same one the notebooks use)
+psycopg-pool>=3.2          # keeps a few connections open so a request does not pay for a new login every time
+shapely>=2.0               # concave hull of the reached nodes with GEOS >= 3.11 (the database image only has GEOS 3.9, see main.py)

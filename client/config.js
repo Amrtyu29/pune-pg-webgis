@@ -8,9 +8,11 @@
   const gs = "http://localhost:8080/geoserver/punepg";     // GeoServer workspace "punepg"
   const tiles = "http://localhost:7800";                   // pg_tileserv
   const feats = "http://localhost:9000";                   // pg_featureserv
+  const api = "http://localhost:8000";                     // bonus: FastAPI + pgRouting isochrone API (Compose service "api")
 
   window.CONFIG = isLocal ? {
     mode: "server",
+    api: api,                                              // /isochrone and /nearest live here; null in static mode
     wms: gs + "/wms",
     wfs: gs + "/wfs",
     hexTiles: (res) => `${tiles}/public.hex_r${res}/{z}/{x}/{y}.pbf`,
@@ -25,6 +27,7 @@
     buildingsWfs: gs + "/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=punepg:buildings&outputFormat=application/json&srsName=EPSG:4326",
   } : {
     mode: "static",
+    api: null,                                             // GitHub Pages has no server, so no live isochrone there
     pmtiles: "data/punepg.pmtiles",                        // built by tippecanoe + pmtiles in the GitHub Action
     hexSourceLayer: (res) => `hex_r${res}`,
     buildingsSourceLayer: "buildings",

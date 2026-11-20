@@ -1,10 +1,11 @@
-# Local Web GIS stack for the assignment: one Compose network with four services.
+# Local Web GIS stack for the assignment: one Compose network with five services
+# (database, GeoServer, pg_tileserv, pg_featureserv, and the bonus isochrone API).
 # Inside this network every container reaches another by its SERVICE NAME as hostname
 # (for example pg_tileserv connects to "db:5432", not "localhost:5432").
 # Credentials come from .env (git-ignored); .env.example lists the variable names.
 #
 #   docker compose up -d          start everything
-#   docker compose ps             all four should show "healthy"
+#   docker compose ps             all five should show "healthy"
 #   docker compose down           stop (data stays in the named volumes)
 #   docker compose down -v        stop AND delete the database and GeoServer data
 
@@ -12,9 +13,11 @@ name: pune-pg-webgis
 
 services:
 
-  # 1. PostgreSQL 16 + PostGIS 3.5: the spatial database every other service reads from.
+  # 1. PostgreSQL 16 + PostGIS 3.5 + pgRouting 3.7: the spatial database every other service reads from.
+  #    The pgrouting/pgrouting image is built FROM postgis/postgis:16-3.5 and only adds the pgRouting
+  #    extension files, which the bonus isochrone API needs (pgr_drivingDistance, pgr_dijkstraCost).
   db:
-    image: postgis/postgis:16-3.5
+    image: pgrouting/pgrouting:16-3.5-3.7
     container_name: pg_db
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -99,6 +102,27 @@ services:
       timeout: 5s
       retries: 10
       start_period: 20s
+    restart: unless-stopped
+
+  # 5. Bonus: live walking-isochrone API (FastAPI + pgRouting), built from ./api (docker compose up -d --build).
+  api:
+    build: ./api
+    image: punepg-api:local
+    container_name: pg_api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    ports:
+      - "${API_PORT:-8000}:8000"
+    healthcheck:
+      # python:3.12-slim has no curl either; Python's own HTTP client asks /health (raises -> exit 1 if not 200)
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
     restart: unless-stopped
 
 volumes:

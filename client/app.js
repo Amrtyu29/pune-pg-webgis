@@ -2,10 +2,11 @@
  * Layers: OSM raster basemap, DEM (WMS), H3 hexagons as vector tiles with data-driven colours,
  * isochrones and buffers, services with pop-ups, ward boundary, and three ways of loading buildings
  * (tiled WMS PNG, MVT, one WFS GeoJSON) for the Q9 performance test.
+ * Bonus (server mode only): a click asks the pgRouting API for a live isochrone and the nearest services.
  * CONFIG (config.js) decides whether data comes from the local server stack or from a PMTiles file. */
 
 const C = window.CONFIG;
-document.getElementById("mode").textContent = C.mode === "server" ? "live: PostGIS · GeoServer · pg_tileserv · pg_featureserv" : "static: GitHub Pages + PMTiles";
+document.getElementById("mode").textContent = C.mode === "server" ? "live: PostGIS · GeoServer · pg_tileserv · pg_featureserv · pgRouting API" : "static: GitHub Pages + PMTiles";
 
 // --- colour scales -------------------------------------------------------------------------------
 // Distance classes follow the walking thresholds: 900 m (15 min at 3.6 km/h), 1,200 m (15 min at 4.8 km/h).
@@ -77,6 +78,7 @@ map.on("load", async () => {
       paint: { "line-color": "#fff", "line-width": 0.5 }, layout: { visibility: res === 9 ? "visible" : "none" } });
     reg("hex", `${src}-fill`); reg("hex", `${src}-line`);
     map.on("click", `${src}-fill`, (e) => {
+      if (liveEnabled()) return;          // while the live tool is on, a click means "isochrone here", not "cell pop-up"
       const p = e.features[0].properties;
       new maplibregl.Popup().setLngLat(e.lngLat).setHTML(
         `<b>H3 ${p.h3}</b> (res ${res})<br>walking distance: <b>${fmt(p.net_dist_m)} m</b><br>straight line: ${fmt(p.sl_dist_m)} m` +
@@ -128,6 +130,20 @@ map.on("load", async () => {
   map.on("mouseenter", "services", () => map.getCanvas().style.cursor = "pointer");
   map.on("mouseleave", "services", () => map.getCanvas().style.cursor = "");
 
+  // Bonus: three empty GeoJSON sources that the live tool fills after each click
+  // (the clicked point, the isochrone polygon from /isochrone, the k nearest services from /nearest)
+  map.addSource("live-iso", { type: "geojson", data: EMPTY });
+  map.addLayer({ id: "live-iso-fill", type: "fill", source: "live-iso", paint: { "fill-color": "#d62728", "fill-opacity": 0.22 } });
+  map.addLayer({ id: "live-iso-line", type: "line", source: "live-iso", paint: { "line-color": "#d62728", "line-width": 2 } });
+  map.addSource("live-nearest", { type: "geojson", data: EMPTY });
+  map.addLayer({ id: "live-nearest", type: "circle", source: "live-nearest",
+    paint: { "circle-radius": 11, "circle-color": "#ffffff", "circle-opacity": 0, "circle-stroke-color": "#d62728", "circle-stroke-width": 3 } });
+  map.addSource("live-click", { type: "geojson", data: EMPTY });
+  map.addLayer({ id: "live-click", type: "circle", source: "live-click",
+    paint: { "circle-radius": 6, "circle-color": "#d62728", "circle-stroke-color": "#fff", "circle-stroke-width": 2 } });
+  map.on("click", (e) => { if (!liveEnabled()) return; lastClick = e.lngLat; runLive(); });
+  wireLive();
+
   wireControls();
   drawLegend("net_dist_m");
   try {
@@ -139,12 +155,69 @@ map.on("load", async () => {
 
 function fmt(v) { const n = Number(v); return Number.isFinite(n) ? Math.round(n).toLocaleString("en-IN") : "no street access"; }
 
+// --- Bonus: live walking isochrone from the FastAPI + pgRouting service ------------------------------------
+const EMPTY = { type: "FeatureCollection", features: [] };
+let lastClick = null;                                     // the last clicked lng/lat, so the slider can re-query it
+function liveEnabled() { return !!C.api && document.getElementById("live-on").checked; }
+
+function wireLive() {
+  const on = document.getElementById("live-on"), slider = document.getElementById("minutes"),
+        label = document.getElementById("minutes-val"), out = document.getElementById("live-out");
+  if (!C.api) {                                           // static site (GitHub Pages): no server, so no live queries
+    on.checked = false; on.disabled = true; slider.disabled = true;
+    out.innerHTML = "The live isochrone needs the pgRouting API, which only runs in the local Compose stack " +
+      "(<code>docker compose up -d</code>, then open http://localhost:8088). GitHub Pages serves static files only; " +
+      "the blue 15-minute isochrones on this page were precomputed in Phase 3.";
+    return;
+  }
+  slider.addEventListener("input", () => { label.textContent = slider.value; });   // live number while dragging
+  slider.addEventListener("change", () => { if (lastClick) runLive(); });          // released: re-query the last click
+  on.addEventListener("change", () => {
+    if (!on.checked) { for (const s of ["live-iso", "live-nearest", "live-click"]) map.getSource(s).setData(EMPTY); out.textContent = "Live tool off."; }
+    else out.textContent = "Click anywhere on the map.";
+  });
+}
+
+async function runLive() {
+  const minutes = Number(document.getElementById("minutes").value);
+  const out = document.getElementById("live-out");
+  const { lng, lat } = lastClick;
+  out.textContent = `querying the API for ${minutes} min…`;
+  const t0 = performance.now();
+  try {
+    // both requests at once; the browser waits for the slower one
+    const [isoR, nearR] = await Promise.all([
+      fetch(`${C.api}/isochrone?lon=${lng.toFixed(6)}&lat=${lat.toFixed(6)}&minutes=${minutes}`),
+      fetch(`${C.api}/nearest?lon=${lng.toFixed(6)}&lat=${lat.toFixed(6)}&k=5`),
+    ]);
+    if (!isoR.ok) throw new Error(`${isoR.status} ${(await isoR.json()).detail || ""}`);
+    if (!nearR.ok) throw new Error(`${nearR.status} ${(await nearR.json()).detail || ""}`);
+    const iso = await isoR.json(), near = await nearR.json();
+    const roundTrip = Math.round(performance.now() - t0);
+    map.getSource("live-iso").setData(iso);
+    map.getSource("live-nearest").setData(near);
+    map.getSource("live-click").setData({ type: "Feature", geometry: { type: "Point", coordinates: [lng, lat] }, properties: {} });
+    const p = iso.properties;
+    const list = near.features.map(f => {
+      const q = f.properties, far = q.minutes > minutes;
+      return `<li class="${far ? "far" : ""}"><b>${q.name || "(no name in OSM)"}</b> · ${q.minutes} min (${fmt(q.walk_m)} m)${far ? " · beyond the isochrone" : ""}</li>`;
+    }).join("");
+    out.innerHTML = `<b>${minutes} min on foot</b> = ${fmt(p.distance_m)} m along the streets from the nearest node (${fmt(p.snap_m)} m from the click). ` +
+      `Reached <b>${p.reached_nodes}</b> nodes; concave hull ${(p.area_m2 / 1e6).toFixed(2)} km².<br>` +
+      `Server: database ${isoR.headers.get("X-DB-Time-ms")} ms, API total ${isoR.headers.get("X-Total-Time-ms")} ms · ` +
+      `/nearest ${nearR.headers.get("X-Total-Time-ms")} ms · browser round trip for both: <b>${roundTrip} ms</b>.` +
+      `<div style="margin-top:4px"><b>Nearest 5 by walking time</b> (click→street + path + street→door):</div><ol>${list}</ol>`;
+  } catch (err) {
+    out.textContent = `API error: ${err.message}. Is the api container up? (docker compose ps)`;
+  }
+}
+
 // --- controls ---------------------------------------------------------------------------------------
 function setGroup(group, on) {
   for (const id of GROUPS[group] || []) if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", on ? "visible" : "none");
 }
 function wireControls() {
-  document.querySelectorAll("#panel input[type=checkbox]").forEach(cb => {
+  document.querySelectorAll("#panel input[type=checkbox][data-group]").forEach(cb => {
     cb.addEventListener("change", async () => {
       const g = cb.dataset.group;
       if (g === "hex") { setHexRes(); return; }
@@ -182,6 +255,7 @@ function drawLegend(attr) {
            <div class="row"><span class="dot" style="background:#e6550d"></span>PG (paying guest)</div>
            <div class="row"><span class="dot" style="background:#fff"></span>no name in OSM</div>
            <div class="row"><span class="sw" style="background:#3182bd33;border-color:#08519c"></span>15-min walking isochrone</div>
-           <div class="row"><span class="sw" style="background:#fdae6b55;border-color:#e6550d;border-style:dashed"></span>1,200 m buffer</div>`;
+           <div class="row"><span class="sw" style="background:#fdae6b55;border-color:#e6550d;border-style:dashed"></span>1,200 m buffer</div>
+           <div class="row"><span class="sw" style="background:#d6272838;border-color:#d62728"></span>live isochrone from your click (pgRouting)</div>`;
   document.getElementById("legend").innerHTML = html;
 }

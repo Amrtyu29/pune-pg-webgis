@@ -42,6 +42,15 @@
     <label><input type="checkbox" data-group="bld-mvt"> Buildings as vector tiles (pg_tileserv)</label>
     <label><input type="checkbox" data-group="bld-wfs"> Buildings as ONE WFS GeoJSON request (Q9 test)</label>
 
+    <!-- Bonus: live walking isochrone. Server mode only: a click calls the FastAPI + pgRouting service
+         (/isochrone and /nearest); the slider re-runs the last click with a new time budget. -->
+    <h2>Live isochrone (bonus, pgRouting)</h2>
+    <label><input type="checkbox" id="live-on" checked> Click the map: walkable area + nearest PGs/hostels</label>
+    <label class="sub">
+      minutes <input type="range" id="minutes" min="5" max="30" step="1" value="15"> <b id="minutes-val">15</b>
+    </label>
+    <div id="live-out" class="small">Click anywhere on the map.</div>
+
     <h2>Legend</h2>
     <div id="legend"></div>
 

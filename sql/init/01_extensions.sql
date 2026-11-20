@@ -4,7 +4,10 @@
 -- can call PostGIS functions such as ST_AsMVT and postgis_full_version().
 CREATE EXTENSION IF NOT EXISTS postgis;
 CREATE EXTENSION IF NOT EXISTS postgis_raster;   -- needed later if a raster is loaded into the database
+-- Bonus: pgRouting (shortest paths and driving-distance inside SQL). Only available because the Compose
+-- file uses the pgrouting/pgrouting image; plain postgis/postgis has no pgrouting extension files.
+CREATE EXTENSION IF NOT EXISTS pgrouting;
 
 -- Keep a record of the versions this project was built with (shown by: SELECT * FROM meta_versions;)
 CREATE TABLE IF NOT EXISTS meta_versions AS
-SELECT now() AS created_at, version() AS postgres, postgis_full_version() AS postgis;
+SELECT now() AS created_at, version() AS postgres, postgis_full_version() AS postgis, pgr_version() AS pgrouting;
