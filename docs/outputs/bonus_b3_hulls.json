@@ -1,0 +1,53 @@
+{
+ "point": [
+  73.83176615313359,
+  18.55305548264837
+ ],
+ "start_node": 7988261957,
+ "snap_m": 90.3,
+ "distance_m": 1200,
+ "reached_nodes": 58,
+ "reached_edges": 67,
+ "polygons": [
+  {
+   "polygon": "convex hull (ST_ConvexHull)",
+   "area_m2": 1104299,
+   "area_km2": 1.104,
+   "share_more_than_50m_from_a_reached_street_pct": 52.2,
+   "vertices": 11
+  },
+  {
+   "polygon": "concave hull, ratio 0.7",
+   "area_m2": 1018328,
+   "area_km2": 1.018,
+   "share_more_than_50m_from_a_reached_street_pct": 49.3,
+   "vertices": 14
+  },
+  {
+   "polygon": "concave hull, ratio 0.3 (API default)",
+   "area_m2": 375236,
+   "area_km2": 0.375,
+   "share_more_than_50m_from_a_reached_street_pct": 20.6,
+   "vertices": 39
+  },
+  {
+   "polygon": "buffered reached edges, 30 m (Phase 3)",
+   "area_m2": 392807,
+   "area_km2": 0.393,
+   "share_more_than_50m_from_a_reached_street_pct": 0.0,
+   "vertices": 1525
+  }
+ ],
+ "postgis_convex_hull_m2": 1104299,
+ "postgis_legacy_concave_hull": {
+  "0.7": {
+   "area_m2": 939861,
+   "seconds": 0.2
+  },
+  "0.3": {
+   "area_m2": 946278,
+   "seconds": 2.7
+  }
+ },
+ "geos_shapely": "3.14.1"
+}

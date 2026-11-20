@@ -382,8 +382,143 @@ next tile, and the DEM comes through WMS/WCS, whereas the static site froze the 
 is disabled). **One advantage of the static site:** it costs nothing and has nothing to keep alive: no database, GeoServer or tile server to patch,
 restart or scale; GitHub's CDN serves byte ranges to any number of viewers, and a push rebuilds everything.
 
-## Bonus (if attempted)
+## Bonus — live walking-isochrone API (pgRouting + FastAPI + MapLibre)
+
+**What runs.** `docker compose up -d` now starts five containers; the fifth, `api` (built from [`api/Dockerfile`](api/Dockerfile),
+code in [`api/main.py`](api/main.py)), is a FastAPI service on http://localhost:8000 that reads `DATABASE_URL` from the environment
+and answers two GET endpoints with GeoJSON in EPSG:4326, each carrying `X-DB-Time-ms` and `X-Total-Time-ms` headers:
+
+| Endpoint | Steps inside PostgreSQL | Example |
+|---|---|---|
+| `/isochrone?lon=&lat=&minutes=` | nearest street node (KNN `ORDER BY geom_utm <-> point LIMIT 1` on the GiST index) → `pgr_drivingDistance(edges, node, minutes × 80 m, directed := false)` → concave hull (ratio 0.3) of the reached nodes → `ST_Transform(…, 4326)` → `ST_AsGeoJSON` | http://localhost:8000/isochrone?lon=73.829&lat=18.557&minutes=15 |
+| `/nearest?lon=&lat=&k=` | same nearest node → `pgr_dijkstraCost(edges, node, ARRAY[all 54 service nodes], false)` one-to-many → minutes = (click→street + path + street→door) / 80 m per min | http://localhost:8000/nearest?lon=73.829&lat=18.557&k=5 |
+
+Interactive documentation: http://localhost:8000/docs · health check: http://localhost:8000/health →
+`{"status":"ok","postgis":"3.5.2","geos_in_database":"3.9.0-CAPI-1.16.2","geos_in_api":"3.14.1","pgrouting":"3.7.3","topology_ready":true}`.
+
+**Database side.** The `db` image is now `pgrouting/pgrouting:16-3.5-3.7` (built on `postgis/postgis:16-3.5`, so the existing volume
+was kept; `CREATE EXTENSION pgrouting` was added to [`sql/init/01_extensions.sql`](sql/init/01_extensions.sql) for fresh volumes).
+[`sql/06_pgrouting_topology.sql`](sql/06_pgrouting_topology.sql) (raw output: [`docs/outputs/06_pgrouting_topology.txt`](docs/outputs/06_pgrouting_topology.txt))
+turns the OSMnx edges from Phase 1 into a pgRouting table. OSMnx already supplies the topology (`u`, `v` node ids on every edge), so no
+`pgr_createTopology` was needed:
+
+```sql
+CREATE TABLE walk_edges_routing AS
+SELECT DISTINCT ON (least(u, v), greatest(u, v), key)
+       edge_id AS id, u AS source, v AS target,
+       length AS cost, length AS reverse_cost,      -- walkers ignore one-way tags: same cost both ways
+       name, highway, geom_utm
+FROM walk_edges ORDER BY least(u, v), greatest(u, v), key, edge_id;
+-- + PRIMARY KEY (id), btree on source/target, GiST on geom_utm; GiST on walk_nodes.geom_utm for the KNN snap
+
+CREATE TABLE services_nodes AS                      -- each PG/hostel snapped once to its nearest node
+SELECT s.service_id, s.name, s.service_type, s.inside_area, n.node_id,
+       round(ST_Distance(s.geom_utm, n.geom_utm)::numeric, 1) AS snap_m, s.geom, s.geom_utm
+FROM services s CROSS JOIN LATERAL
+     (SELECT node_id, geom_utm FROM walk_nodes ORDER BY geom_utm <-> s.geom_utm LIMIT 1) AS n;
+```
+
+```
+directed_rows_from_osmnx | routing_segments | nodes | network_km      17090 | 8561 | 6645 | 654.4
+edges_with_missing_node                                              0
+number_of_components (pgr_connectedComponents)                       1      (all 6,645 nodes in one component)
+services | distinct_nodes | median_snap_m | max_snap_m               54 | 45 | 40.55 | 174.1   (notebook: median 41, max 174)
+```
+
+8,561 segments rather than the notebook's 8,545 undirected edges: 32 self-loops and a few parallel ways whose two directions carry
+different OSMnx keys survive the `DISTINCT ON`; duplicates with equal cost never change a shortest path. Smoke test from the ward
+centroid (the SQL the API runs): `pgr_drivingDistance` 1,200 m reaches **148 nodes**, farthest 1,179 m; five nearest services
+Pune University Guest House 9.9 min, girls hostel No 3 10.1, L 10 11.1, Nalanda 12.9, (unnamed #7) 14.8.
+
+**Client.** In server mode [`client/app.js`](client/app.js) adds three GeoJSON sources (click point, isochrone polygon, highlighted
+nearest services); a map click calls both endpoints in parallel (`Promise.all`), draws the red polygon and lists the five nearest
+PGs/hostels with minutes in the new "Live isochrone" box; the minutes slider (5–30, default 15) re-runs the last click. On the
+GitHub Pages copy `CONFIG.api` is `null`, the box explains that the live tool needs the Compose stack, and everything else is unchanged.
+
+![live isochrone in the client](docs/screenshots/bonus_client_click.png)
+
+_Demo recording: no screen recorder is installed on this laptop; the 2-minute demo (click, slider, `/docs`, `docker compose ps`) is to be
+recorded with Xbox Game Bar (Win+G) or OBS before submission._
 
 ### B1. Latency
+
+_(filled in below from `docs/outputs/bonus_b1_latency.json`)_
+
 ### B2. Two engines, one question
+
+**Script:** [`analysis/bonus_b2_compare.py`](analysis/bonus_b2_compare.py) · **raw output:** [`docs/outputs/bonus_b2_compare.json`](docs/outputs/bonus_b2_compare.json) · **map:** [`docs/screenshots/bonus_b2_engines.png`](docs/screenshots/bonus_b2_engines.png)
+
+Ten populated res-9 cells with their centre in the ward (seed 20261120). For each cell centre, **OSMnx** = `hex_r9.net_dist_m` from
+Phase 3 (snap to the nearest node + one `networkx.multi_source_dijkstra_path_length` from all service nodes, section 3 of the notebook);
+**pgRouting** = the same snap in SQL, then:
+
+```sql
+WITH c AS (SELECT ST_Centroid(geom_utm) AS g FROM hex_r9 WHERE h3 = %s),
+start AS (SELECT n.node_id, ST_Distance(n.geom_utm, c.g) AS snap_m FROM c, walk_nodes n ORDER BY n.geom_utm <-> c.g LIMIT 1),
+costs AS (SELECT end_vid, agg_cost FROM pgr_dijkstraCost('SELECT id, source, target, cost, reverse_cost FROM walk_edges_routing',
+                 (SELECT node_id FROM start), (SELECT array_agg(DISTINCT node_id) FROM services_nodes), false))
+SELECT min(agg_cost) + (SELECT snap_m FROM start) FROM costs;          -- "naive" reading
+```
+
+| # | H3 cell | OSMnx (m) | pgRouting, naive (m) | diff | pgRouting after fix (m) | diff | same snap node? | nearest service |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 896088519a7ffff | 591.6 | 591.6 | +0.01 % | 591.6 | +0.01 % | yes | Pune University Guest House |
+| 2 | 89608851b93ffff | 3,683.3 | 3,683.3 | 0.00 % | 3,683.3 | 0.00 % | yes | Nalanda (Q7's second-worst cell) |
+| 3 | 89608851973ffff | 1,288.4 | 1,288.4 | 0.00 % | 1,288.4 | 0.00 % | yes | Nalanda |
+| 4 | **89608851937ffff** | **12.2** | **64.4** | **+427 %** | 12.2 | +0.3 % | yes (10241901732) | #7 (unnamed campus hostel) |
+| 5 | 89608851907ffff | 896.2 | 896.2 | 0.00 % | 896.2 | 0.00 % | yes | Nalanda |
+| 6 | 89608850a7bffff | 674.2 | 674.2 | 0.00 % | 674.2 | 0.00 % | yes | Girls' Hostel Pune University |
+| 7 | 8960885198fffff | 1,014.3 | 1,014.3 | 0.00 % | 1,014.3 | 0.00 % | yes | girls hostel No 3 |
+| 8 | 89608850a4bffff | 562.3 | 562.3 | 0.00 % | 562.3 | 0.00 % | yes | Gents Hostel no 4 |
+| 9 | **896088519b3ffff** | **75.0** | **545.2** | **+627 %** | 75.0 | +0.03 % | yes (4705115361) | Girls' Hostel Pune University |
+| 10 | 896088519bbffff | 199.7 | 199.7 | 0.00 % | 199.7 | 0.00 % | yes | L 10 |
+
+![B2 map](docs/screenshots/bonus_b2_engines.png)
+
+*Where they differ and why.* Eight of ten cells agree to the metre, which rules out the usual suspects: both engines snap to the **same
+node** (both use Euclidean nearest-node in UTM; the script re-ran `osmnx.distance.nearest_nodes` and compared node ids), both use the
+**same edge lengths** (`walk_edges_routing.cost` *is* OSMnx's `length`; nothing was simplified or re-digitised when the table was built)
+and both treat the graph as **undirected** (`to_undirected` in Phase 3, `cost = reverse_cost` and `directed := false` here), so one-way
+tags play no role for walkers in either engine. The two cells that differed by **+427 % and +627 %** (cells 4 and 9) share one property:
+their centre's nearest node *is itself a service node* (a campus hostel sits on that node), so networkx gives path length 0 and the
+distance is just the snap (12.2 m, 75.0 m). `pgr_dijkstraCost`, however, **returns no row when a target equals the start vertex** (the
+pgRouting manual: start = end yields no path), so the naive `min(agg_cost)` silently picked the *second*-nearest hostel, 52 m and 470 m
+away. The cause is therefore neither graph simplification nor snapping nor one-way handling but a **semantic difference in the routing
+call**; the fix (also in the API's `/nearest`) is a `LEFT JOIN` from `services_nodes` with `CASE WHEN node_id = start THEN 0`, after
+which all ten cells agree within 0.3 % (the residual is `snap_m` rounded to 0.1 m in `services_nodes`). On the map the two affected cells
+are drawn in red; both lie inside the SPPU campus, where hostels sit directly on the footpath nodes. Lesson for the viva: when two engines
+disagree by hundreds of percent on a 12 m distance, look for a convention, not a geometry error.
+
 ### B3. Hull choice
+
+**Script:** [`analysis/bonus_b3_hulls.py`](analysis/bonus_b3_hulls.py) · **raw output:** [`docs/outputs/bonus_b3_hulls.json`](docs/outputs/bonus_b3_hulls.json) · **figure:** [`docs/screenshots/bonus_b3_hulls.png`](docs/screenshots/bonus_b3_hulls.png)
+
+One isochrone: Q6's worst-case point 16 (18.55306 N, 73.83177 E, just outside the SPPU campus wall), snapped 90 m to node 7988261957,
+`pgr_drivingDistance` 1,200 m → **58 nodes, 67 edges** (both end nodes reached, exactly what `networkx.ego_graph` kept in Phase 3).
+Four polygons from the same nodes/edges, all in UTM 43N:
+
+| Polygon | Area (m²) | km² | Share of the polygon > 50 m from any reached street | Vertices |
+|---|---|---|---|---|
+| Convex hull (`ST_ConvexHull`) | **1,104,299** | 1.104 | **52.2 %** | 11 |
+| Concave hull, target ratio 0.7 | 1,018,328 | 1.018 | 49.3 % | 14 |
+| Concave hull, target ratio 0.3 (API default) | 375,236 | 0.375 | 20.6 % | 39 |
+| Buffered reached edges, 30 m, dissolved (Phase 3 method) | 392,807 | 0.393 | 0.0 % | 1,525 |
+
+The two concave hulls use the GEOS `ConcaveHull(ratio)` algorithm that `ST_ConcaveHull(geom, ratio)` calls in PostGIS ≥ 3.3 with
+GEOS ≥ 3.11; this database image has GEOS 3.9, where PostGIS falls back to a legacy implementation that is both slow (0.2–2.7 s for 58
+points, 7–40 s for 150–500) and different (ratio 0.7 → 939,861 m², ratio 0.3 → 946,278 m²: the legacy "target percent" barely
+tightens), so the API computes the hull with shapely's bundled GEOS 3.14 (see B1 and the README debugging log).
+
+![B3 four polygons](docs/screenshots/bonus_b3_hulls.png)
+
+*Which misleads a user most.* The **convex hull**: it hands the user 1.10 km² of "15-minute reach", **2.8× the honest area**, and more
+than half of it (52 %) is farther than 50 m from any street the walker can actually reach: the whole interior of the campus blocks,
+sports grounds and walled plots between the few lanes that the isochrone threads through. It also leaks across the campus wall that
+was the whole point of Q6, so a user standing at point 16 is told the L 10 hostel behind the wall is "inside" the 15-minute area although
+it is 1,531 m away on foot. The ratio-0.7 concave hull is hardly better (49 %): the GEOS algorithm only starts removing long edges when
+the ratio is low. The ratio-0.3 hull is within 4 % of the buffered-edges area and follows the street spokes, but it still bridges 21 %
+of ground between adjacent lanes with nothing walkable in between, which is the price of returning a single readable polygon of 39
+vertices (1.7 KB of GeoJSON). The buffered-edges polygon is the only one that paints nothing unreachable, but it is a 1,525-vertex
+street ribbon that users read as "the roads", not as an area, and it is the heaviest to ship; it is right for the analyst (Phase 3,
+Q7) while the ratio-0.3 hull is the compromise for the interactive click. The honest default, whichever hull is drawn, is to show the
+reached streets or the nearest-services list next to it, which the client does.

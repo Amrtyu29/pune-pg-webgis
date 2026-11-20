@@ -12,7 +12,7 @@ Variants (the switches exist only so this "before / after" can be re-run at the 
   isochrone  hull=postgis edges=all   the first version: ST_ConcaveHull inside PostgreSQL on the whole graph
   isochrone  hull=shapely edges=all   optimisation 1: hull in the API with shapely's GEOS 3.14 (database GEOS is 3.9)
   isochrone  hull=shapely edges=bbox  optimisation 2: pgRouting loads only the edges around the click (default)
-  nearest    edges=all / edges=bbox   whole graph vs expanding window (default bbox)
+  nearest    edges=all / edges=bbox   whole graph (default) vs expanding window (tried, not adopted: see ANSWERS B1)
 
 Writes docs/outputs/bonus_b1_latency.json with the summary and every raw measurement."""
 import json
@@ -42,8 +42,8 @@ VARIANTS = [
     ("isochrone: hull in PostgreSQL (legacy ST_ConcaveHull), whole graph", "/isochrone", {"minutes": MINUTES, "hull": "postgis", "edges": "all"}, SLOW_POINTS),
     ("isochrone: hull in the API (shapely/GEOS 3.14), whole graph", "/isochrone", {"minutes": MINUTES, "hull": "shapely", "edges": "all"}, N_POINTS),
     ("isochrone: hull in the API, edges around the click (default)", "/isochrone", {"minutes": MINUTES, "hull": "shapely", "edges": "bbox"}, N_POINTS),
-    ("nearest k=5: whole graph", "/nearest", {"k": K, "edges": "all"}, N_POINTS),
-    ("nearest k=5: expanding window (default)", "/nearest", {"k": K, "edges": "bbox"}, N_POINTS),
+    ("nearest k=5: whole graph (default)", "/nearest", {"k": K, "edges": "all"}, N_POINTS),
+    ("nearest k=5: expanding window 1.5 / 3 / 6 km, then whole graph", "/nearest", {"k": K, "edges": "bbox"}, N_POINTS),
 ]
 
 # 1. 50 random points inside the ward: rejection sampling in the ward's bounding box with a fixed seed (same idea as Q6)

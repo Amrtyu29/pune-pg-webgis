@@ -15,7 +15,8 @@ Assumptions are the same as Phase 3: 4.8 km/h = 80 m per minute, snap to the nea
 The database URL comes from the environment (DATABASE_URL), set by docker-compose.yml; nothing is hard-coded.
 
 Two switches exist only so the B1 "before / after" numbers can be reproduced at any time:
-  edges=all|bbox   load the whole graph into pgRouting, or only the edges around the click (default bbox)
+  edges=all|bbox   load the whole graph into pgRouting, or only the edges around the click
+                   (default bbox for /isochrone, all for /nearest: see the B1 measurements in ANSWERS.md)
   hull=postgis|shapely   ST_ConcaveHull inside PostgreSQL, or the same GEOS algorithm in Python (default shapely).
   The database image (pgrouting/pgrouting:16-3.5-3.7, Debian 11) has GEOS 3.9, and PostGIS only uses the fast
   native concave hull from GEOS 3.11 on; below that it falls back to a legacy plpgsql implementation that took
@@ -121,7 +122,7 @@ def timing_headers(response, t):
 def index():
     return {"service": "Prabhag 11 walking-isochrone API (FastAPI + PostGIS + pgRouting)",
             "endpoints": {"/isochrone": "?lon=73.829&lat=18.557&minutes=15[&edges=bbox|all][&hull=shapely|postgis]",
-                          "/nearest": "?lon=73.829&lat=18.557&k=5[&edges=bbox|all]",
+                          "/nearest": "?lon=73.829&lat=18.557&k=5[&edges=all|bbox]",
                           "/health": "database and topology check", "/docs": "interactive documentation"},
             "speed_m_per_min": SPEED_M_PER_MIN, "hull": f"ST_ConcaveHull ratio {HULL_RATIO}"}
 
@@ -226,7 +227,9 @@ def nearest_services(cur, t, start, x, y, k, mode):
 def nearest(response: Response,
             lon: float = Query(...), lat: float = Query(...),
             k: int = Query(5, ge=1, le=54, description="how many services"),
-            edges: str = Query("bbox", pattern="^(all|bbox)$")):
+            # default "all": the B1 benchmark showed the expanding window helps the median but not p95 for this
+            # endpoint (a second or third attempt costs more than loading the whole 8,561-row graph once)
+            edges: str = Query("all", pattern="^(all|bbox)$")):
     check_point(lon, lat)
     t = Timer()
     with pool.connection() as con, con.cursor() as cur:

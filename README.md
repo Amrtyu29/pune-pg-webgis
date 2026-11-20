@@ -24,8 +24,9 @@ within 15 minutes, and why?**
 
 ```
 README.md            this file: public URL, setup, sources, debugging log
-ANSWERS.md           Q1–Q12 (+ bonus) with evidence
-docker-compose.yml   PostGIS, GeoServer, pg_tileserv, pg_featureserv on one network
+ANSWERS.md           Q1–Q12 (+ bonus B1–B3) with evidence
+docker-compose.yml   PostGIS+pgRouting, GeoServer, pg_tileserv, pg_featureserv, isochrone API on one network
+api/                 bonus: FastAPI + pgRouting walking-isochrone API (/isochrone, /nearest) and its Dockerfile
 .env.example         variable names only (copy to .env, which is git-ignored)
 study/               four one-page study notes with diagrams + lab proof screenshots
 sql/                 every SQL script run against PostGIS
@@ -42,7 +43,8 @@ docs/screenshots/    evidence screenshots linked from ANSWERS.md
 
 1. **Docker Desktop** with the WSL 2 backend (if the engine says "WSL update required", run `wsl --update` and restart Docker Desktop).
 2. Copy `.env.example` to `.env` and fill in a database user, password, database name and a GeoServer admin password.
-3. Start the stack and wait until all four containers are `healthy` (GeoServer needs about a minute):
+3. Start the stack and wait until all five containers are `healthy` (GeoServer needs about a minute; the first run
+   also builds the small `api` image from `api/Dockerfile`):
 
    ```powershell
    docker compose up -d
@@ -51,10 +53,11 @@ docs/screenshots/    evidence screenshots linked from ANSWERS.md
 
    | Service | URL on the host |
    |---|---|
-   | PostGIS | `localhost:5434` (container port 5432) |
+   | PostGIS 16 + PostGIS 3.5 + pgRouting 3.7 (`pgrouting/pgrouting:16-3.5-3.7`) | `localhost:5434` (container port 5432) |
    | GeoServer | http://localhost:8080/geoserver |
    | pg_tileserv | http://localhost:7800 |
    | pg_featureserv | http://localhost:9000 |
+   | isochrone API (bonus, FastAPI + pgRouting) | http://localhost:8000 (interactive docs at `/docs`, check at `/health`) |
 
 4. **Python 3.12** virtual environment for the notebooks:
 
@@ -79,6 +82,13 @@ docs/screenshots/    evidence screenshots linked from ANSWERS.md
    `.github/workflows/deploy-pages.yml` (tippecanoe → `punepg.pmtiles` → GitHub Pages). Q12 numbers: `analysis\measure_q12.py`.
 10. **Phase 5B – kind.** `powershell -ExecutionPolicy Bypass -File k8s\deploy.ps1` (cluster, image, Secret from `.env`, manifests), then
     `kubectl -n punepg port-forward svc/client 8089:80` → http://localhost:8089. Q11 experiment: `k8s\q11_selfheal.ps1 -Label pvc|emptydir`.
+11. **Bonus – live isochrone API.** After Phase 1 has loaded `walk_nodes` / `walk_edges`, build the routing topology once:
+    `.venv\Scripts\python.exe analysis\run_sql.py sql\06_pgrouting_topology.sql` (creates `walk_edges_routing` and `services_nodes`
+    with their indexes; on a database volume created before the image switch it also runs `CREATE EXTENSION pgrouting`).
+    The `api` container is already up from step 3 (`docker compose up -d --build api` after editing `api/main.py`). Try
+    http://localhost:8000/isochrone?lon=73.829&lat=18.557&minutes=15 and http://localhost:8000/nearest?lon=73.829&lat=18.557&k=5,
+    then click anywhere on http://localhost:8088 (the "Live isochrone" box in the side panel; the slider re-runs the last click).
+    Evidence: `analysis\bench_bonus.py` (B1), `analysis\bonus_b2_compare.py` (B2), `analysis\bonus_b3_hulls.py` (B3).
 
 ## Sources and citations
 
@@ -90,8 +100,8 @@ docs/screenshots/    evidence screenshots linked from ANSWERS.md
 * **Elevation:** Copernicus DEM GLO-30 (ESA / Airbus, 30 m), tile `Copernicus_DSM_COG_10_N18_00_E073_00_DEM` from the
   AWS Open Data bucket `copernicus-dem-30m`, clipped to the ward + 2 km by `analysis/prepare_dem.py` into
   `data/dem/dem_prabhag11.tif` (166 KB, committed). Chosen over SRTM because it needs no account or API key.
-* **Software:** PostgreSQL 16 + PostGIS 3.5 (`postgis/postgis`), GeoServer 2.27 (`docker.osgeo.org/geoserver`), pg_tileserv and pg_featureserv (CrunchyData, `pramsey/*` images), OSMnx, GeoPandas, h3-py, MapLibre GL JS, tippecanoe, PMTiles, kind, kubectl.
-* **Tutorials and references used:** OGC WMS 1.1.1 / 1.3.0 and WFS 2.0 specifications, PostGIS manual (spatial indexes, geography), GeoServer user manual (SLD cookbook), H3 docs, OSMnx docs, Docker "Get started" guide, Kubernetes Basics tutorial, Protomaps PMTiles docs.
+* **Software:** PostgreSQL 16 + PostGIS 3.5 + pgRouting 3.7 (`pgrouting/pgrouting:16-3.5-3.7`, built on `postgis/postgis:16-3.5`), GeoServer 2.27 (`docker.osgeo.org/geoserver`), pg_tileserv and pg_featureserv (CrunchyData, `pramsey/*` images), FastAPI + uvicorn + psycopg 3 + shapely 2 (bonus API), OSMnx, GeoPandas, h3-py, MapLibre GL JS, tippecanoe, PMTiles, kind, kubectl.
+* **Tutorials and references used:** OGC WMS 1.1.1 / 1.3.0 and WFS 2.0 specifications, PostGIS manual (spatial indexes, geography, ST_ConcaveHull), pgRouting manual (pgr_drivingDistance, pgr_dijkstraCost, pgr_connectedComponents), FastAPI tutorial, GeoServer user manual (SLD cookbook), H3 docs, OSMnx docs, Docker "Get started" guide, Kubernetes Basics tutorial, Protomaps PMTiles docs.
 * AI assistance: Claude (Anthropic) was used as a coding and study partner; every line was reviewed and can be explained and modified at the viva.
 
 ## Debugging log
@@ -124,3 +134,20 @@ docs/screenshots/    evidence screenshots linked from ANSWERS.md
 * **2026-11-19 — No healthcheck possible for pg_tileserv / pg_featureserv with curl.** The `pramsey/*` images have
   no `curl` or `wget` (`which curl` exits 127), so `docker compose ps` could never report them healthy. Their
   `/bin/sh` is bash, so the healthcheck opens a raw TCP socket with bash's `/dev/tcp/127.0.0.1/7800` instead.
+* **2026-11-20 — Bonus `/isochrone` took 7 seconds although pgRouting needed 8 ms.** The first version built the hull
+  in SQL; `docs/outputs/06_pgrouting_topology.txt` shows the smoke test `pgr_drivingDistance … ST_ConcaveHull(…, 0.3)` at
+  `7208.8 ms wall` for only 148 nodes, while the same `pgr_drivingDistance` alone and `pgr_dijkstraCost` took 7–13 ms.
+  Timing every part separately pointed at `ST_ConcaveHull`; `SELECT postgis_geos_version()` returned `3.9.0`. PostGIS only
+  uses the fast GEOS concave hull from GEOS 3.11 on, and below that falls back to a legacy plpgsql implementation, so the
+  Debian-11-based database image can never do this quickly. Fix: the API fetches the reached nodes (one small query) and
+  computes the same GEOS `ConcaveHull(ratio=0.3)` with shapely 2 (GEOS 3.14 bundled); PostGIS still reprojects the result
+  and writes the GeoJSON. p95 for `/isochrone` fell from about 7 s to tens of milliseconds (B1 in ANSWERS.md). The slow path
+  is kept behind `?hull=postgis` so the measurement can be repeated.
+* **2026-11-20 — `pgr_dijkstraCost` returns no row when the target is the start node.** In the B2 comparison two H3 cells
+  came out 400–600 % "longer" by pgRouting than by networkx. Both cell centres snap to a node that *is* a service node;
+  networkx reports distance 0 there, pgRouting simply omits the start=end pair, so the SQL silently picked the second-nearest
+  service. Fix in the API and in `bonus_b2_compare.py`: a `LEFT JOIN` from `services_nodes` with `CASE WHEN node_id = start THEN 0`.
+* **2026-11-20 — `docker compose down -v` was not needed for the image switch.** `pgrouting/pgrouting:16-3.5-3.7` is built on
+  the very same `postgis/postgis:16-3.5` layers (PostgreSQL 16.9, PostGIS 3.5.2), so the existing `pgdata` volume was kept and
+  only `CREATE EXTENSION pgrouting` was run (first line of `sql/06_pgrouting_topology.sql`). A fresh clone gets it from
+  `sql/init/01_extensions.sql` automatically.

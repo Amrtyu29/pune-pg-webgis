@@ -49,7 +49,7 @@ start AS (SELECT n.node_id, ST_Distance(n.geom_utm, c.g) AS snap_m FROM c, walk_
 costs AS (SELECT end_vid, agg_cost FROM pgr_dijkstraCost('{EDGES}', (SELECT node_id FROM start), (SELECT array_agg(DISTINCT node_id) FROM services_nodes), false)),
 cand AS (SELECT sn.service_id, sn.name, sn.node_id,
                 CASE WHEN sn.node_id = s.node_id THEN 0 ELSE k.agg_cost END AS path_m
-         FROM services_nodes sn, start s
+         FROM services_nodes sn CROSS JOIN start s
          LEFT JOIN costs k ON k.end_vid = sn.node_id
          WHERE sn.node_id = s.node_id OR k.agg_cost IS NOT NULL)
 SELECT c.h3, c.osmnx_m, c.osmnx_snap_m, s.node_id, s.snap_m,
@@ -108,24 +108,30 @@ for r in rows:
     wkb = cur.fetchone()[0]
     routes.append(shapely.from_wkb(wkb) if wkb else None)
 
-fig, ax = plt.subplots(figsize=(10, 10))
+fig, ax = plt.subplots(figsize=(11, 10))
 gpd.GeoSeries([edges], crs=UTM).clip(ward.buffer(300)).plot(ax=ax, color="#bbbbbb", linewidth=0.4)
 gpd.GeoSeries([ward], crs=UTM).boundary.plot(ax=ax, color="black", linewidth=1)
 hexes.plot(ax=ax, facecolor="none", edgecolor="#1f77b4", linewidth=1.5)
 services.plot(ax=ax, color="red", markersize=14, zorder=4)
-for r, route in zip(rows, routes):
+lines = []
+for i, (r, route) in enumerate(zip(rows, routes), 1):
     flagged = abs(r["diff_naive_pct"]) > 10
     colour = "#d62728" if flagged else "#2ca02c"
     if route is not None:
         gpd.GeoSeries([route], crs=UTM).plot(ax=ax, color=colour, linewidth=2, zorder=3)
-    ax.plot([r["cx"]], [r["cy"]], marker="*", color="black", markersize=9, zorder=5)
-    label = f"OSMnx {r['osmnx_m']:.0f} m / pgRouting {r['pgr_m']:.0f} m ({r['diff_pct']:+.1f} %)"
+    ax.plot([r["cx"]], [r["cy"]], marker="*", color="black", markersize=10, zorder=5)
+    ax.annotate(str(i), (r["cx"], r["cy"]), xytext=(5, 5), textcoords="offset points", fontsize=10, weight="bold", color=colour,
+                bbox=dict(boxstyle="circle,pad=0.15", fc="white", ec=colour, lw=0.8), zorder=6)
+    line = f"{i:>2}. OSMnx {r['osmnx_m']:7.1f} m | pgRouting {r['pgr_m']:7.1f} m ({r['diff_pct']:+.1f} %)"
     if flagged:
-        label += f"\nnaive pgr_dijkstraCost {r['pgr_naive_m']:.0f} m ({r['diff_naive_pct']:+.0f} %):\nstart node IS the service node"
-    ax.annotate(label, (r["cx"], r["cy"]), xytext=(6, 6), textcoords="offset points", fontsize=7.5, color=colour,
-                bbox=dict(boxstyle="round,pad=0.2", fc="white", ec=colour, lw=0.6, alpha=0.9))
-ax.set_title("B2: walking distance from 10 H3 res-9 cell centres to the nearest PG/hostel\n"
-             "OSMnx/networkx (Phase 3) vs pgRouting (bonus API); red = the naive pgRouting reading was >10 % off")
+        line += f"\n    naive pgr_dijkstraCost {r['pgr_naive_m']:.0f} m ({r['diff_naive_pct']:+.0f} %): the cell's\n    nearest node IS the service node; pgRouting returns no start=end row"
+    lines.append(line)
+ax.text(0.01, 0.01, "\n".join(lines), transform=ax.transAxes, fontsize=8, family="monospace", va="bottom", ha="left",
+        bbox=dict(boxstyle="round,pad=0.4", fc="white", ec="#666", alpha=0.95))
+minx, miny, maxx, maxy = ward.buffer(250).bounds
+ax.set_xlim(minx - 1900, maxx); ax.set_ylim(miny, maxy)          # room on the left for the table
+ax.set_title("B2: walking distance from 10 H3 res-9 cell centres (stars) to the nearest PG/hostel (red dots)\n"
+             "OSMnx/networkx (Phase 3) vs pgRouting (bonus API); routes = pgRouting path; red = naive pgRouting reading >10 % off")
 ax.set_axis_off()
 png = ROOT / "docs" / "screenshots" / "bonus_b2_engines.png"
 fig.savefig(png, dpi=130, bbox_inches="tight")
