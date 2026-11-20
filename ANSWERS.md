@@ -1,10 +1,10 @@
-# ANSWERS
+﻿# ANSWERS
 
-**Area:** Prabhag 11 "Bopodi – Savitribai Phule Pune University", Pune Municipal Corporation (2022 delimitation), about 7.1 km², urban city ward.
-**Service type:** other — PGs and hostels. OSM tags counted: `tourism=hostel`, `tourism=guest_house`, `building=dormitory`, `amenity=dormitory`, plus any feature whose `name` contains *PG*, *Paying Guest* or *Hostel* (roads and canteens that merely carry "hostel" in the name are removed in cleaning).
-**UTM zone:** 43N, EPSG:32643 (area centre 18.557° N, 73.829° E; zone = floor((73.829 + 180) / 6) + 1 = 43).
+**Area:** Prabhag 11 "Bopodi â€“ Savitribai Phule Pune University", Pune Municipal Corporation (2022 delimitation), about 7.1 kmÂ², urban city ward.
+**Service type:** other â€” PGs and hostels. OSM tags counted: `tourism=hostel`, `tourism=guest_house`, `building=dormitory`, `amenity=dormitory`, plus any feature whose `name` contains *PG*, *Paying Guest* or *Hostel* (roads and canteens that merely carry "hostel" in the name are removed in cleaning).
+**UTM zone:** 43N, EPSG:32643 (area centre 18.557Â° N, 73.829Â° E; zone = floor((73.829 + 180) / 6) + 1 = 43).
 **Walking threshold:** 15 minutes = 1,200 m at 4.8 km/h (urban ward). Sensitivity run at 3.6 km/h in Q8.
-**Earlier project (baseline for Q3, Q6, Q9):** PuneStay, https://github.com/Amrtyu29/punestay — straight-line search with `ST_DWithin(geom::geography, …)` on a FastAPI + PostGIS backend, Leaflet client loading one GeoJSON per request.
+**Earlier project (baseline for Q3, Q6, Q9):** PuneStay, https://github.com/Amrtyu29/punestay â€” straight-line search with `ST_DWithin(geom::geography, â€¦)` on a FastAPI + PostGIS backend, Leaflet client loading one GeoJSON per request.
 
 Every answer below gives the exact SQL or URL, the raw output (or its key lines), screenshots where asked (relative links into `docs/screenshots/`), and a short explanation.
 
@@ -12,13 +12,19 @@ Every answer below gives the exact SQL or URL, the raw output (or its key lines)
 
 ## Setup checkpoint
 
-_Screenshot of `docker compose ps` with four healthy containers and the GeoServer admin page: `docs/screenshots/setup_compose_ps.png`, `docs/screenshots/setup_geoserver_admin.png`._
+All four containers healthy (`docker compose ps`, captured 2026-11-20; text copy in `docs/setup_compose_ps.txt`):
 
-## Phase 1 — From API data to your own database
+![docker compose ps](docs/screenshots/setup_compose_ps.jpg)
+
+GeoServer admin page after login (2026-11-19):
+
+![GeoServer admin](docs/screenshots/setup_geoserver_admin.jpg)
+
+## Phase 1 â€” From API data to your own database
 
 ### Q1. One area, four areas
 
-**SQL:** [`sql/02_q1_area_four_ways.sql`](sql/02_q1_area_four_ways.sql) · **raw output:** [`docs/outputs/02_q1_area_four_ways.txt`](docs/outputs/02_q1_area_four_ways.txt)
+**SQL:** [`sql/02_q1_area_four_ways.sql`](sql/02_q1_area_four_ways.sql) Â· **raw output:** [`docs/outputs/02_q1_area_four_ways.txt`](docs/outputs/02_q1_area_four_ways.txt)
 
 ```sql
 SELECT ST_Area(geom)                        AS area_4326_square_degrees,
@@ -32,17 +38,17 @@ FROM area;
 | Method | Value | Unit |
 |---|---|---|
 | `ST_Area(geom)` on the EPSG:4326 geometry | 0.000608292 | square **degrees** (no physical meaning) |
-| `ST_Area(geom::geography)` | 7,107,832 | m² (7.1078 km²) |
-| `ST_Area(geom_utm)` in UTM 43N, EPSG:32643 | 7,104,830 | m² (7.1048 km²) |
-| `ST_Area(ST_Transform(geom, 3857))` Web Mercator | 7,951,391 | m² (7.9514 km²) |
+| `ST_Area(geom::geography)` | 7,107,832 | mÂ² (7.1078 kmÂ²) |
+| `ST_Area(geom_utm)` in UTM 43N, EPSG:32643 | 7,104,830 | mÂ² (7.1048 kmÂ²) |
+| `ST_Area(ST_Transform(geom, 3857))` Web Mercator | 7,951,391 | mÂ² (7.9514 kmÂ²) |
 
-Centre latitude 18.5573° N. Ratio **3857 / UTM = 1.11915**; **1 / cos²(18.5573°) = 1.11270**; they differ by 0.58 %.
+Centre latitude 18.5573Â° N. Ratio **3857 / UTM = 1.11915**; **1 / cosÂ²(18.5573Â°) = 1.11270**; they differ by 0.58 %.
 
-*Explanation.* The 4326 number is useless because a "square degree" is a different size at every latitude. Geography and UTM agree to 0.04 % because both measure real metres (geography on the spheroid, UTM on a near-conformal plane with scale error below 0.1 % this close to the zone's 75° E meridian). Web Mercator is conformal but stretches lengths by 1/cos(φ) in both directions, so areas are inflated by 1/cos²(φ): at Pune that is +11.3 %, which is exactly what the ratio shows. The remaining 0.58 % is because the ward spans 0.046° of latitude while the formula uses one latitude, and because UTM itself is not exactly scale 1 here. **My earlier project (PuneStay)** measured distances with `ST_Distance(geom::geography, …)`, i.e. on the WGS 84 spheroid in metres, not in 3857 or UTM; those distances were straight lines, which Phase 3 revisits.
+*Explanation.* The 4326 number is useless because a "square degree" is a different size at every latitude. Geography and UTM agree to 0.04 % because both measure real metres (geography on the spheroid, UTM on a near-conformal plane with scale error below 0.1 % this close to the zone's 75Â° E meridian). Web Mercator is conformal but stretches lengths by 1/cos(Ï†) in both directions, so areas are inflated by 1/cosÂ²(Ï†): at Pune that is +11.3 %, which is exactly what the ratio shows. The remaining 0.58 % is because the ward spans 0.046Â° of latitude while the formula uses one latitude, and because UTM itself is not exactly scale 1 here. **My earlier project (PuneStay)** measured distances with `ST_Distance(geom::geography, â€¦)`, i.e. on the WGS 84 spheroid in metres, not in 3857 or UTM; those distances were straight lines, which Phase 3 revisits.
 
 ### Q2. Indexes and query plans
 
-**SQL:** [`sql/03_q2_index_and_plans.sql`](sql/03_q2_index_and_plans.sql) · **raw plans:** [`docs/outputs/03_q2_index_and_plans.txt`](docs/outputs/03_q2_index_and_plans.txt)
+**SQL:** [`sql/03_q2_index_and_plans.sql`](sql/03_q2_index_and_plans.sql) Â· **raw plans:** [`docs/outputs/03_q2_index_and_plans.txt`](docs/outputs/03_q2_index_and_plans.txt)
 
 Query: buildings within 500 m of each of the 19 services inside the ward (20,525 building footprints in the area + 2 km).
 
@@ -55,17 +61,17 @@ WHERE s.inside_area GROUP BY s.service_id, s.name ORDER BY s.service_id;
 
 | Run | Scan node on `buildings` | Rows checked by the join filter | Execution time |
 |---|---|---|---|
-| (a) `ST_DWithin`, **no** GiST index | `Seq Scan on buildings b` → `Materialize`, `Join Filter: st_dwithin(...)`, *Rows Removed by Join Filter: 386,694* | 19 × 20,525 = 389,975 | **431.987 ms** |
-| (b) `ST_DWithin`, **with** `CREATE INDEX buildings_geom_utm_gist ON buildings USING GIST (geom_utm)` | `Index Scan using buildings_geom_utm_gist`, `Index Cond: (geom_utm && st_expand(s.geom_utm, 500))`, `Filter: st_dwithin(...)`, *Rows Removed by Filter: 50* per service | 19 × ~223 = 4,237 | **3.881 ms** |
+| (a) `ST_DWithin`, **no** GiST index | `Seq Scan on buildings b` â†’ `Materialize`, `Join Filter: st_dwithin(...)`, *Rows Removed by Join Filter: 386,694* | 19 Ã— 20,525 = 389,975 | **431.987 ms** |
+| (b) `ST_DWithin`, **with** `CREATE INDEX buildings_geom_utm_gist ON buildings USING GIST (geom_utm)` | `Index Scan using buildings_geom_utm_gist`, `Index Cond: (geom_utm && st_expand(s.geom_utm, 500))`, `Filter: st_dwithin(...)`, *Rows Removed by Filter: 50* per service | 19 Ã— ~223 = 4,237 | **3.881 ms** |
 | (c) `ST_Distance(s.geom_utm, b.geom_utm) < 500`, index present | `Seq Scan on buildings b` again, `Join Filter: (st_distance(...) < 500)`, *Rows Removed by Join Filter: 386,694* | 389,975 | **374.313 ms** |
 
-Key plan lines (b): `Index Scan using buildings_geom_utm_gist on buildings b (actual time=0.015..0.166 rows=173 loops=19)`. Result: 3,281 service–building pairs, e.g. Colonial Hearth Mubarak has 599 buildings within 500 m, the SPPU campus hostels 92–194.
+Key plan lines (b): `Index Scan using buildings_geom_utm_gist on buildings b (actual time=0.015..0.166 rows=173 loops=19)`. Result: 3,281 serviceâ€“building pairs, e.g. Colonial Hearth Mubarak has 599 buildings within 500 m, the SPPU campus hostels 92â€“194.
 
-*Explanation.* Without an index PostgreSQL has no way to find "nearby" rows, so it tests every building against every service (a nested loop over 390 k pairs) and the time is dominated by 390 k exact distance computations. `ST_DWithin` is index-aware: PostGIS rewrites it as a bounding-box overlap `geom_utm && ST_Expand(point, 500)` that the GiST R-tree answers from a handful of pages, and the exact distance runs only on the ~220 candidates per service, hence **111× faster**. `ST_Distance(a, b) < 500` asks the same question but as a plain function compared to a number; the planner cannot turn a function result into an index operator, so it falls back to the sequential scan and the time goes back to the no-index level (slightly faster than (a) only because the JIT compile and buffers were warm). Lesson for the viva: write radius filters as `ST_DWithin`, never as `ST_Distance < r`.
+*Explanation.* Without an index PostgreSQL has no way to find "nearby" rows, so it tests every building against every service (a nested loop over 390 k pairs) and the time is dominated by 390 k exact distance computations. `ST_DWithin` is index-aware: PostGIS rewrites it as a bounding-box overlap `geom_utm && ST_Expand(point, 500)` that the GiST R-tree answers from a handful of pages, and the exact distance runs only on the ~220 candidates per service, hence **111Ã— faster**. `ST_Distance(a, b) < 500` asks the same question but as a plain function compared to a number; the planner cannot turn a function result into an index operator, so it falls back to the sequential scan and the time goes back to the no-index level (slightly faster than (a) only because the JIT compile and buffers were warm). Lesson for the viva: write radius filters as `ST_DWithin`, never as `ST_Distance < r`.
 
 ### Q3. Data quality vs the earlier source
 
-**SQL:** [`sql/04_q3_data_quality.sql`](sql/04_q3_data_quality.sql) · **raw output:** [`docs/outputs/04_q3_data_quality.txt`](docs/outputs/04_q3_data_quality.txt) · baseline script: [`analysis/baseline_punestay.py`](analysis/baseline_punestay.py)
+**SQL:** [`sql/04_q3_data_quality.sql`](sql/04_q3_data_quality.sql) Â· **raw output:** [`docs/outputs/04_q3_data_quality.txt`](docs/outputs/04_q3_data_quality.txt) Â· baseline script: [`analysis/baseline_punestay.py`](analysis/baseline_punestay.py)
 
 ```sql
 SELECT count(*) AS services_in_area, count(*) FILTER (WHERE name IS NULL) AS without_name,
@@ -100,25 +106,25 @@ private PGs and over-represents institutional hostels. Neither source alone is c
 | # | OSM feature | Second source says | Verdict |
 |---|---|---|---|
 | 1 | International Boys Hostel (node 10172982148) | "The International Boys Hostel (ISH) has 96 rooms" | **correct** |
-| 2 | Pune University Guest House (way 1034696718) | "It also has a University Guest House … more than 34 rooms" | **correct** (official name slightly different) |
+| 2 | Pune University Guest House (way 1034696718) | "It also has a University Guest House â€¦ more than 34 rooms" | **correct** (official name slightly different) |
 | 3 | International Girls Hostel (node 6643174622) | the girls' international accommodation is called "International Transit House (ITH), 42 rooms and six 1BHK flats" | **correct place, outdated/colloquial name** |
-| 4 | Boys Hostel No. 9 / Hostel No. 6 / Boys Hostel No. 1, 2, 7, 8 (numbered campus hostels) | capacity page: "Gents Hostel – Total Hostels 09, capacity 1689"; the pages publish no individual names | **consistent** (9 gents hostels exist; individual numbers not published, so not individually confirmed) |
+| 4 | Boys Hostel No. 9 / Hostel No. 6 / Boys Hostel No. 1, 2, 7, 8 (numbered campus hostels) | capacity page: "Gents Hostel â€“ Total Hostels 09, capacity 1689"; the pages publish no individual names | **consistent** (9 gents hostels exist; individual numbers not published, so not individually confirmed) |
 | 5 | Colonial Hearth Mubarak (node 13982374992, added to OSM in 2025) | no trace on any official page or hostel directory I could find | **unverified; possibly a private hostel under another name, or closed** |
 
 Result: 2 correct, 1 correct-but-renamed, 1 consistent-but-unconfirmed, 1 unverified; **none found misplaced**. A field check of #5 is the
 one open item.
 
-## Phase 2 — Publish your own OGC services
+## Phase 2 â€” Publish your own OGC services
 
 Setup is scripted in [`analysis/setup_geoserver.py`](analysis/setup_geoserver.py) (GeoServer REST API): workspace `punepg`, PostGIS store
 (host `db`, port 5432 inside the Compose network), layers `area`, `services`, `buildings` from the views in [`sql/05_geoserver_views.sql`](sql/05_geoserver_views.sql),
 style [`sld/services.sld`](sld/services.sld) (rules: unnamed / PG / hostel), and the coverage `dem` from `data/dem/dem_prabhag11.tif` (Copernicus GLO-30, clipped by
-[`analysis/prepare_dem.py`](analysis/prepare_dem.py)), served by WMS and WCS (`…/wcs?service=WCS&version=2.0.1&request=DescribeCoverage&coverageId=punepg__dem`).
+[`analysis/prepare_dem.py`](analysis/prepare_dem.py)), served by WMS and WCS (`â€¦/wcs?service=WCS&version=2.0.1&request=DescribeCoverage&coverageId=punepg__dem`).
 WMS render of DEM + ward + services: ![](docs/screenshots/phase2_dem_wms.png)
 
 ### Q4. The axis-order trap
 
-**Script:** [`analysis/evidence_q4_q5.py`](analysis/evidence_q4_q5.py) · **raw log:** [`docs/outputs/q4_q5_evidence.txt`](docs/outputs/q4_q5_evidence.txt) · capabilities document: [`docs/outputs/q4_getcapabilities_130.xml`](docs/outputs/q4_getcapabilities_130.xml)
+**Script:** [`analysis/evidence_q4_q5.py`](analysis/evidence_q4_q5.py) Â· **raw log:** [`docs/outputs/q4_q5_evidence.txt`](docs/outputs/q4_q5_evidence.txt) Â· capabilities document: [`docs/outputs/q4_getcapabilities_130.xml`](docs/outputs/q4_getcapabilities_130.xml)
 
 From `http://localhost:8080/geoserver/punepg/wms?service=WMS&version=1.3.0&request=GetCapabilities`, the services layer:
 
@@ -128,15 +134,15 @@ From `http://localhost:8080/geoserver/punepg/wms?service=WMS&version=1.3.0&reque
 
 Note that `minx` is **18.5**: in WMS 1.3.0 the first axis of EPSG:4326 is **latitude**, exactly as the EPSG registry defines the CRS.
 
-Two GetMap requests with the same four numbers `BBOX=18.5124766,73.7980591,18.5648147,73.85224091613597`, 600 × 600 px, layers `punepg:services,punepg:area`:
+Two GetMap requests with the same four numbers `BBOX=18.5124766,73.7980591,18.5648147,73.85224091613597`, 600 Ã— 600 px, layers `punepg:services,punepg:area`:
 
 | Version | Request | Result |
 |---|---|---|
-| 1.1.1 | `…/wms?service=WMS&request=GetMap&version=1.1.1&srs=EPSG:4326&bbox=18.5124766,73.7980591,18.5648147,73.85224091613597&layers=punepg:services,punepg:area&width=600&height=600&format=image/png` | HTTP 200, **blank white image, 5,819 bytes** → ![](docs/screenshots/q4_getmap_111.png) |
-| 1.3.0 | `…/wms?service=WMS&request=GetMap&version=1.3.0&crs=EPSG:4326&bbox=18.5124766,73.7980591,18.5648147,73.85224091613597&layers=punepg:services,punepg:area&width=600&height=600&format=image/png` | HTTP 200, **map of the ward with the hostels, 45,256 bytes** → ![](docs/screenshots/q4_getmap_130.png) |
+| 1.1.1 | `â€¦/wms?service=WMS&request=GetMap&version=1.1.1&srs=EPSG:4326&bbox=18.5124766,73.7980591,18.5648147,73.85224091613597&layers=punepg:services,punepg:area&width=600&height=600&format=image/png` | HTTP 200, **blank white image, 5,819 bytes** â†’ ![](docs/screenshots/q4_getmap_111.png) |
+| 1.3.0 | `â€¦/wms?service=WMS&request=GetMap&version=1.3.0&crs=EPSG:4326&bbox=18.5124766,73.7980591,18.5648147,73.85224091613597&layers=punepg:services,punepg:area&width=600&height=600&format=image/png` | HTTP 200, **map of the ward with the hostels, 45,256 bytes** â†’ ![](docs/screenshots/q4_getmap_130.png) |
 | 1.1.1, box rewritten as lon/lat `73.7980591,18.5124766,73.85224091613597,18.5648147` | [`docs/screenshots/q4_getmap_111_lonlat.png`](docs/screenshots/q4_getmap_111_lonlat.png) | the same map as 1.3.0 (45,256 bytes, byte-identical) |
 
-*Explanation.* WMS 1.1.1 (OGC 01-068r3, §6.5.5) fixes the BBOX order as `minx,miny,maxx,maxy` with x = longitude for every geographic SRS, so it reads my numbers as a box at **longitude 18.5°, latitude 73.8°**, in the Arctic Ocean north of Norway, where there is nothing to draw: a blank image. WMS 1.3.0 (OGC 06-042, §6.7.3 and Annex B) changed the rule: coordinates follow the axis order of the CRS definition, and EPSG:4326 is defined as latitude, longitude, so the same numbers are now read as lat 18.5°, lon 73.8° and the ward appears. The parameter name also changed (`SRS` → `CRS`). The fix for a 1.1.1 client is simply to swap the pairs, which gives a byte-identical image. This is the single most common interoperability bug between map clients and servers, and it is why MapLibre/Leaflet clients request `EPSG:3857` tiles (whose axis order never changed) instead.
+*Explanation.* WMS 1.1.1 (OGC 01-068r3, Â§6.5.5) fixes the BBOX order as `minx,miny,maxx,maxy` with x = longitude for every geographic SRS, so it reads my numbers as a box at **longitude 18.5Â°, latitude 73.8Â°**, in the Arctic Ocean north of Norway, where there is nothing to draw: a blank image. WMS 1.3.0 (OGC 06-042, Â§6.7.3 and Annex B) changed the rule: coordinates follow the axis order of the CRS definition, and EPSG:4326 is defined as latitude, longitude, so the same numbers are now read as lat 18.5Â°, lon 73.8Â° and the ward appears. The parameter name also changed (`SRS` â†’ `CRS`). The fix for a 1.1.1 client is simply to swap the pairs, which gives a byte-identical image. This is the single most common interoperability bug between map clients and servers, and it is why MapLibre/Leaflet clients request `EPSG:3857` tiles (whose axis order never changed) instead.
 
 ### Q5. WFS with a filter, two formats
 
@@ -144,21 +150,21 @@ Filter: only **named** services **inside the ward**, expressed as CQL on the lay
 
 ```
 http://localhost:8080/geoserver/punepg/wfs?service=WFS&version=2.0.0&request=GetFeature&typeNames=punepg:services&CQL_FILTER=name+IS+NOT+NULL+AND+inside_area+%3D+true&resultType=hits
-→ numberMatched="16"
+â†’ numberMatched="16"
 ```
 
 | Format | URL (same filter) | Size | numberMatched | First point |
 |---|---|---|---|---|
-| GML 3.2 | `…&outputFormat=application/gml%2Bxml;+version=3.2` ([file](docs/outputs/q5_services_named.gml)) | **16.1 KB** | 16 | `<gml:pos>18.557 73.8222</gml:pos>` with `srsName="urn:ogc:def:crs:EPSG::4326"` → **latitude, longitude** |
-| GeoJSON | `…&outputFormat=application/json` ([file](docs/outputs/q5_services_named.geojson)) | **6.2 KB** | 16 (numberReturned 16) | `"coordinates": [73.8222, 18.557]` → **longitude, latitude** |
+| GML 3.2 | `â€¦&outputFormat=application/gml%2Bxml;+version=3.2` ([file](docs/outputs/q5_services_named.gml)) | **16.1 KB** | 16 | `<gml:pos>18.557 73.8222</gml:pos>` with `srsName="urn:ogc:def:crs:EPSG::4326"` â†’ **latitude, longitude** |
+| GeoJSON | `â€¦&outputFormat=application/json` ([file](docs/outputs/q5_services_named.geojson)) | **6.2 KB** | 16 (numberReturned 16) | `"coordinates": [73.8222, 18.557]` â†’ **longitude, latitude** |
 
-*Explanation.* 16 = 19 services inside the ward minus the 3 unnamed ones (Q3). GML 3.2 is 2.6× larger because every value is wrapped in namespaced XML elements and the geometry carries its own `srsName`. The coordinate order differs for the same reason as Q4: GML with a `urn:ogc:def:crs:EPSG::4326` CRS obeys the EPSG axis order (lat, lon), while GeoJSON (RFC 7946) fixes the order as longitude, latitude and does not even allow another CRS. A client therefore needs to know the *format* to know what the first number means, which is why the OGC API – Features standard (pg_featureserv) simply mandates GeoJSON.
+*Explanation.* 16 = 19 services inside the ward minus the 3 unnamed ones (Q3). GML 3.2 is 2.6Ã— larger because every value is wrapped in namespaced XML elements and the geometry carries its own `srsName`. The coordinate order differs for the same reason as Q4: GML with a `urn:ogc:def:crs:EPSG::4326` CRS obeys the EPSG axis order (lat, lon), while GeoJSON (RFC 7946) fixes the order as longitude, latitude and does not even allow another CRS. A client therefore needs to know the *format* to know what the first number means, which is why the OGC API â€“ Features standard (pg_featureserv) simply mandates GeoJSON.
 
-## Phase 3 — Was the earlier "nearest" right?
+## Phase 3 â€” Was the earlier "nearest" right?
 
 All Phase 3 numbers come from [`analysis/02_isochrones_h3.ipynb`](analysis/02_isochrones_h3.ipynb) (run top to bottom; results also in
 [`docs/outputs/phase3_results.json`](docs/outputs/phase3_results.json)). Walking graph: OSMnx `network_type="walk"`, area + 2 km, 6,645 nodes / 8,545 undirected edges,
-projected to UTM 43N. Speed 4.8 km/h → **1,200 m in 15 min**; destinations = all 54 PGs/hostels in the ward **and** the 2 km margin (19 inside).
+projected to UTM 43N. Speed 4.8 km/h â†’ **1,200 m in 15 min**; destinations = all 54 PGs/hostels in the ward **and** the 2 km margin (19 inside).
 Isochrone = all street segments reachable within 1,200 m of the service's nearest node (`networkx.ego_graph`, `distance="length"`), buffered 30 m.
 Population = WorldPop 2020 constrained 100 m, **98,234 people** in the ward (685 populated pixels), every pixel assigned to exactly one H3 cell.
 
@@ -172,8 +178,8 @@ plus the two snap distances).
 |---|---|
 | Nearest service is a **different** one by network than by straight line | **13 of 30 points (43 %)** |
 | Ratio network / straight-line distance | **median 1.55, maximum 4.57** |
-| Largest ratio overall | point 21: 46 m straight, 209 m walking (×4.57), a hostel just across a campus fence |
-| Worst case among points ≥ 300 m from a service (the one mapped) | **point 16** (18.55306 N, 73.83177 E): straight line 352 m to *L 10* hostel (#15), walking 1,256 m to a different hostel (#26) → **×3.57** |
+| Largest ratio overall | point 21: 46 m straight, 209 m walking (Ã—4.57), a hostel just across a campus fence |
+| Worst case among points â‰¥ 300 m from a service (the one mapped) | **point 16** (18.55306 N, 73.83177 E): straight line 352 m to *L 10* hostel (#15), walking 1,256 m to a different hostel (#26) â†’ **Ã—3.57** |
 | Largest absolute detour | point 23: 2,391 m straight, 3,583 m walking (+1,192 m) |
 
 ![Q6 worst case](docs/screenshots/q6_worst_case.png)
@@ -192,13 +198,13 @@ Share of the ward's population **beyond 1,200 m** of the nearest PG/hostel, by n
 | Unit of analysis | units | % population beyond 1,200 m, **network** | % beyond 1,200 m, **buffer** |
 |---|---|---|---|
 | WorldPop pixel, 100 m (reference) | 685 | **54.3 %** | 28.8 % |
-| H3 resolution 9 (≈0.105 km²) | 95 | 53.4 % | 27.6 % |
-| H3 resolution 8 (≈0.74 km²) | 22 | 56.4 % | 29.8 % |
+| H3 resolution 9 (â‰ˆ0.105 kmÂ²) | 95 | 53.4 % | 27.6 % |
+| H3 resolution 8 (â‰ˆ0.74 kmÂ²) | 22 | 56.4 % | 29.8 % |
 | Ward as one unit (its centroid) | 1 | **0 %** | 0 % |
 
 Area covered inside the ward: isochrones 32.4 %, buffers 80.2 % ([map](docs/screenshots/q7_isochrone_vs_buffer.png)).
-Worst-served populated res-9 cell (≥ 50 people): **`89608851867ffff`** (127 people, centre 18.57348 N 73.84441 E): straight line 2,609 m, **walking 5,198 m**
-to *Nalanda* hostel. The route (`analysis/explain_worst_cell.py`) goes over **New Harris Bridge** across the Mula river, along the Old Pune–Mumbai Highway and
+Worst-served populated res-9 cell (â‰¥ 50 people): **`89608851867ffff`** (127 people, centre 18.57348 N 73.84441 E): straight line 2,609 m, **walking 5,198 m**
+to *Nalanda* hostel. The route (`analysis/explain_worst_cell.py`) goes over **New Harris Bridge** across the Mula river, along the Old Puneâ€“Mumbai Highway and
 into the campus by the IUCAA back road: the river is crossable only at that bridge. Next worst: `89608851b93ffff` (1,040 people, 3,683 m) in the same
 Bopodi pocket north of the river.
 
@@ -217,45 +223,45 @@ Same network, walking speed **3.6 km/h** (elderly walkers): 15 min = **900 m**.
 
 | Unit | % population covered @ 4.8 km/h | % covered @ 3.6 km/h | percentage points lost |
 |---|---|---|---|
-| WorldPop pixel, 100 m | 45.7 % | 33.2 % | **−12.4 pp** |
-| H3 res 9 | 46.6 % | 38.7 % | −7.8 pp |
-| H3 res 8 | 43.6 % | 38.7 % | −4.9 pp |
+| WorldPop pixel, 100 m | 45.7 % | 33.2 % | **âˆ’12.4 pp** |
+| H3 res 9 | 46.6 % | 38.7 % | âˆ’7.8 pp |
+| H3 res 8 | 43.6 % | 38.7 % | âˆ’4.9 pp |
 
 At pixel level **12.4 percentage points** of the population, about **12,200 people**, drop out of 15-minute reach when the model is built for a slower walker.
-At res 9, 11 cells holding 7,686 people flip from covered to not covered; they form a ring 900–1,200 m along the streets from the campus hostels: the
+At res 9, 11 cells holding 7,686 people flip from covered to not covered; they form a ring 900â€“1,200 m along the streets from the campus hostels: the
 Ganeshkhind Road / Aundh Road frontage west of the campus and the southern tip of the ward near Shivajinagar (dark-green core stays, the light-green
 fringe disappears; see the `covered_net_slow` column of `hex_r9` and the "isochrone 900 m" layer in the client). The lesson: a "15-minute" claim is really
 a claim about *who* walks; the healthy-adult default overstates access for the elderly by a quarter of the covered population in this ward.
 
-## Phase 4 — Map client and performance
+## Phase 4 â€” Map client and performance
 
 ### Q9. Three ways to ship the same map
 
 Client: [`client/`](client/) (MapLibre GL JS). The three building modes are the last three checkboxes of the layer switcher.
 Measurement: [`analysis/measure_q9.py`](analysis/measure_q9.py) drives a headless Chromium with the cache disabled (the DevTools
-"Disable cache" setting, via CDP `Network.setCacheDisabled`), opens the client at the given zoom (centre 73.829 E 18.552 N, 1280 × 800 px),
+"Disable cache" setting, via CDP `Network.setCacheDisabled`), opens the client at the given zoom (centre 73.829 E 18.552 N, 1280 Ã— 800 px),
 ticks one checkbox and records every response of that layer until MapLibre is idle; raw numbers in
-[`docs/outputs/q9_measurements.json`](docs/outputs/q9_measurements.json). "KB" = response bytes received; "time" = tick → last response.
+[`docs/outputs/q9_measurements.json`](docs/outputs/q9_measurements.json). "KB" = response bytes received; "time" = tick â†’ last response.
 
 | Zoom | (a) tiled WMS PNG, GeoServer `GetMap` 256 px | (b) one WFS 2.0 GeoJSON `GetFeature` | (c) MVT from pg_tileserv `/public.buildings/{z}/{x}/{y}.pbf` |
 |---|---|---|---|
-| **12** | 16 requests · **193 KB** · 1.3 s | 1 request · **8,435 KB** · 2.7 s | 4 requests · **1,450 KB** · 0.9 s |
-| **14** | 16 requests · **711 KB** · 1.2 s | 1 request · **8,416 KB** · 5.1 s | 6 requests · **855 KB** · 1.3 s |
-| **16** | 20 requests · **226 KB** · 1.0 s | 1 request · **8,428 KB** · 2.7 s | 6 requests · **25 KB** · 0.5 s |
+| **12** | 16 requests Â· **193 KB** Â· 1.3 s | 1 request Â· **8,435 KB** Â· 2.7 s | 4 requests Â· **1,450 KB** Â· 0.9 s |
+| **14** | 16 requests Â· **711 KB** Â· 1.2 s | 1 request Â· **8,416 KB** Â· 5.1 s | 6 requests Â· **855 KB** Â· 1.3 s |
+| **16** | 20 requests Â· **226 KB** Â· 1.0 s | 1 request Â· **8,428 KB** Â· 2.7 s | 6 requests Â· **25 KB** Â· 0.5 s |
 
 (20,525 footprints in the area + 2 km. The WFS answer is the same 8.4 MB whatever the zoom; MapLibre then has to parse and index all of it in the
-browser, which is the extra 2–5 s. Times vary ±1 s between runs because all services share one laptop.)
+browser, which is the extra 2â€“5 s. Times vary Â±1 s between runs because all services share one laptop.)
 
 *Which breaks first as the area grows.* **(b) the single GeoJSON**: its cost is proportional to the *whole dataset*, not to what is on screen, so a
 city of two million buildings would mean an 800 MB download and a frozen tab, while the view at zoom 16 needs only a few hundred polygons.
 **(c) MVT** scales best: at zoom 16 the six tiles for the view weigh 25 KB, and at low zooms pg_tileserv already clips to the tile (1.4 MB at
 zoom 12 because every footprint in the area falls into four tiles; for a whole city one would add `--drop-densest`-style generalisation or a
-min-zoom). **(a) tiled WMS** also scales with the view, but every tile is a server-side render: 16–20 PNG requests per screen, nothing clickable,
-and a new render for every style change. **My earlier project (PuneStay)** loaded its data the (b) way: one `GET /listings?bbox=…` returning all
+min-zoom). **(a) tiled WMS** also scales with the view, but every tile is a server-side render: 16â€“20 PNG requests per screen, nothing clickable,
+and a new render for every style change. **My earlier project (PuneStay)** loaded its data the (b) way: one `GET /listings?bbox=â€¦` returning all
 matching listings as GeoJSON (capped at 500 rows) and one GeoJSON per nearby-services search; with 520 listings that is a few hundred KB and fine,
 but at city scale with every building or every POI it would behave exactly like column (b): one giant response, then the browser chokes.
 
-## Phase 5 — Deploy it, for free
+## Phase 5 â€” Deploy it, for free
 
 ### Q10. Image size
 
@@ -270,7 +276,7 @@ docker images | findstr punepg
 | Image | Base | Size |
 |---|---|---|
 | `punepg-client:single` | one stage, `node:20` (Debian), serves with `npx serve` | **1.7 GB** |
-| `punepg-client:local` | stage 1 `node:20` builder → stage 2 `nginx:1.27-alpine` | **83.8 MB** (20× smaller) |
+| `punepg-client:local` | stage 1 `node:20` builder â†’ stage 2 `nginx:1.27-alpine` | **83.8 MB** (20Ã— smaller) |
 
 `docker history punepg-client:local` (full output in [`docs/outputs/q10_history_multistage.txt`](docs/outputs/q10_history_multistage.txt); single-stage in [`q10_history_singlestage.txt`](docs/outputs/q10_history_singlestage.txt)):
 
@@ -304,7 +310,7 @@ Full logs: [`docs/outputs/q11_pvc.txt`](docs/outputs/q11_pvc.txt), [`docs/output
 15:48:18.699  rows in q11_marker before deletion: 1 rows, first written 2026-11-19 10:18:18
 15:48:21.723  kubectl delete pod postgis-0
 15:48:22.516  postgis-0   1/1   Terminating
-15:48:23.829  postgis-0   0/1   Pending             <- new pod object (uid 1968f08a… -> d7dac2a2…)
+15:48:23.829  postgis-0   0/1   Pending             <- new pod object (uid 1968f08aâ€¦ -> d7dac2a2â€¦)
 15:48:23.856  postgis-0   0/1   ContainerCreating
 15:48:24.412  postgis-0   0/1   Running
 15:48:35.093  postgis-0   1/1   Running             <- readiness probe (pg_isready) passes
@@ -340,13 +346,13 @@ Service, and a `volumeClaimTemplate` that binds exactly one PVC to exactly that 
 as interchangeable copies with random names: it could schedule two replicas at once during a rollout, both writing the same files, and it has no
 notion of "the volume that belongs to replica 0".
 
-To reach the client: `kubectl -n punepg port-forward svc/client 8089:80` → http://localhost:8089 (nginx `punepg-client:local` loaded into kind
+To reach the client: `kubectl -n punepg port-forward svc/client 8089:80` â†’ http://localhost:8089 (nginx `punepg-client:local` loaded into kind
 with `kind load docker-image`).
 
 ### Q12. Static vs server deployment
 
 Public URL: **https://amrtyu29.github.io/pune-pg-webgis/** (built and deployed by [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml):
-tippecanoe → `punepg.pmtiles` (3,687,883 bytes, layers `hex_r8`, `hex_r9`, `buildings`) → GitHub Pages).
+tippecanoe â†’ `punepg.pmtiles` (3,687,883 bytes, layers `hex_r8`, `hex_r9`, `buildings`) â†’ GitHub Pages).
 Measured with [`analysis/measure_q12.py`](analysis/measure_q12.py) (headless Chromium, cache disabled, zoom 14, same centre as Q9;
 raw log [`docs/outputs/q12_pages_requests.json`](docs/outputs/q12_pages_requests.json), screenshot [`docs/screenshots/q12_pages_zoom14.png`](docs/screenshots/q12_pages_zoom14.png)).
 
@@ -355,7 +361,7 @@ One PMTiles request and its response:
 ```
 GET https://amrtyu29.github.io/pune-pg-webgis/data/punepg.pmtiles
 Range: bytes=1792576-1830936
-→ HTTP 206 Partial Content
+â†’ HTTP 206 Partial Content
 Content-Range: bytes 1792576-1830936/3687883   (38,361 bytes)
 ```
 
