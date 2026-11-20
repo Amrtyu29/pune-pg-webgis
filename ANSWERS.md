@@ -442,7 +442,52 @@ recorded with Xbox Game Bar (Win+G) or OBS before submission._
 
 ### B1. Latency
 
-_(filled in below from `docs/outputs/bonus_b1_latency.json`)_
+**Script:** [`analysis/bench_bonus.py`](analysis/bench_bonus.py) · **raw numbers (every request):** [`docs/outputs/bonus_b1_latency.json`](docs/outputs/bonus_b1_latency.json)
+
+50 random points inside the ward (rejection sampling in the ward's bounding box, seed 20261120), fired from Python with `requests`
+at `/isochrone?minutes=15` and `/nearest?k=5` after one warm-up call. Per request the script keeps **DB time** (the `X-DB-Time-ms`
+header: time the API waited for PostgreSQL), **API time** (`X-Total-Time-ms` − DB: Python, hull, JSON) and **network time** (round trip
+seen by the client − `X-Total`: HTTP, Docker Desktop's port forwarding from Windows into the WSL VM, the client library). The first
+variant is the API as first written; each later row is one change, kept selectable by a query parameter so the comparison can be
+re-run at the viva (`?hull=postgis|shapely`, `?edges=all|bbox`).
+
+| Endpoint and variant | n | DB p50 / **p95** (ms) | API p50 / p95 | network p50 / p95 | server total p50 / **p95** | client round trip p50 / p95 |
+|---|---|---|---|---|---|---|
+| `/isochrone` hull = `ST_ConcaveHull` in SQL, whole graph (**first version**) | 10 | 21,628 / **49,028** | 2.4 / 22.7 | 33 / 91 | 21,631 / **49,033** | 21,670 / 49,117 |
+| `/isochrone` hull in the API with shapely (GEOS 3.14), whole graph | 50 | 56.8 / **82.6** | 2.0 / 11.2 | 21 / 72 | 59.2 / **88.1** | 82 / 141 |
+| `/isochrone` hull in the API, **edges around the click only (default)** | 50 | 10.7 / **18.9** | 2.2 / 5.1 | 13 / 27 | 12.9 / **22.0** | 26 / 47 |
+| `/nearest` whole graph (**default**) | 50 | 45.0 / **65.4** | 0.6 / 1.3 | 19 / 42 | 45.8 / **66.0** | 68 / 102 |
+| `/nearest` expanding window 1.5 → 3 → 6 km → whole graph | 50 | 9.1 / 68.5 | 0.7 / 2.3 | 19 / 43 | 10.2 / 69.2 | 43 / 99 |
+
+(The slow first variant was run for 10 of the 50 points: 50 would have taken half an hour. All five services, Docker Desktop and the
+browser share one laptop, so absolute numbers move between runs by ±50 %; an earlier run while the machine was idle gave p95 15.6 ms
+for the default `/isochrone`; the ranking of the variants was the same in all three runs.)
+
+*What was changed, and by how much.*
+
+1. **Where the hull is computed: p95 from 49 s to 88 ms (≈ 550×).** Profiling the first version query by query showed `pgr_drivingDistance`
+   at 7–13 ms and `ST_ConcaveHull(ST_Collect(nodes), 0.3)` at 6.8 s for 148 nodes, up to 65 s for the 400–500 nodes a click in the
+   dense Bopodi grid reaches. `SELECT postgis_geos_version()` → `3.9.0`: PostGIS only calls GEOS's native concave hull from GEOS 3.11
+   on and below that runs a legacy plpgsql algorithm whose cost explodes with the point count. The database image cannot be upgraded
+   without leaving the pgRouting image family, so the API now reads the reached nodes (one 150-row query), builds the hull with
+   shapely 2 (GEOS 3.14, the same `ConcaveHull(ratio)` algorithm, 1–2 ms) and lets PostGIS reproject and serialise it. DB time is now
+   the pgRouting call itself.
+2. **Loading only the edges around the click: p95 from 88 ms to 22 ms (4×).** pgRouting rebuilds its in-memory graph from the inner
+   SQL on *every* call, so with `SELECT … FROM walk_edges_routing` it read all 8,561 rows each time and graph loading, not Dijkstra,
+   dominated DB time (57 ms median). The default now passes
+   `… WHERE geom_utm && ST_Expand(ST_SetSRID(ST_MakePoint(x, y), 32643), minutes × 80)`, answered from the GiST index. This is exact,
+   not an approximation: no path of length ≤ *d* can leave the square of half-width *d* around the start node, so every reachable
+   node is still found. DB median fell from 56.8 to 10.7 ms, p95 from 82.6 to 18.9 ms.
+3. **Tried and not adopted for `/nearest`: an expanding search window.** The same bbox idea with radii 1.5, 3 and 6 km, stopping as
+   soon as *k* services are found with path length ≤ radius (then no service outside the window can be closer). It halves the median
+   (46 → 10 ms) but **p95 gets slightly worse** (66 → 69 ms): about one click in six needs a second or third attempt, and each attempt
+   re-runs the one-to-many Dijkstra, so the tail pays twice. `/nearest` therefore defaults to the whole graph (`edges=all`), which is
+   already under 70 ms at p95. A real next step would be a materialised distance matrix node → service, refreshed when `services` changes.
+
+After the two adopted changes a click costs the server **13 ms median / 22 ms p95** for the polygon and **46 / 66 ms** for the ranking;
+the browser fires both in parallel and reports the combined round trip in the side panel (≈ 60–350 ms on this laptop, see the
+screenshot above), well inside the brief's one second. Where the remaining time goes: for `/isochrone` the database is 10.7 of 12.9 ms,
+Python 2 ms, and the network leg (Windows → Docker Desktop → container) 13 ms, i.e. transport now costs as much as the computation.
 
 ### B2. Two engines, one question
 

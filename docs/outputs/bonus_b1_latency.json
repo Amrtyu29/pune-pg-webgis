@@ -1,0 +1,2930 @@
+{
+ "api": "http://localhost:8000",
+ "seed": 20261120,
+ "minutes": 15,
+ "k": 5,
+ "points": [
+  [
+   73.825958,
+   18.553082
+  ],
+  [
+   73.816597,
+   18.559489
+  ],
+  [
+   73.821759,
+   18.560998
+  ],
+  [
+   73.823515,
+   18.564994
+  ],
+  [
+   73.830716,
+   18.545384
+  ],
+  [
+   73.817046,
+   18.567169
+  ],
+  [
+   73.816518,
+   18.565589
+  ],
+  [
+   73.836987,
+   18.541002
+  ],
+  [
+   73.835103,
+   18.571793
+  ],
+  [
+   73.831813,
+   18.531472
+  ],
+  [
+   73.841811,
+   18.572294
+  ],
+  [
+   73.827927,
+   18.55493
+  ],
+  [
+   73.835106,
+   18.543931
+  ],
+  [
+   73.823485,
+   18.549712
+  ],
+  [
+   73.836847,
+   18.568015
+  ],
+  [
+   73.827572,
+   18.548494
+  ],
+  [
+   73.840801,
+   18.570476
+  ],
+  [
+   73.832622,
+   18.545213
+  ],
+  [
+   73.8266,
+   18.554301
+  ],
+  [
+   73.819246,
+   18.561512
+  ],
+  [
+   73.816975,
+   18.5674
+  ],
+  [
+   73.817467,
+   18.557325
+  ],
+  [
+   73.81231,
+   18.567848
+  ],
+  [
+   73.819055,
+   18.560868
+  ],
+  [
+   73.821871,
+   18.563664
+  ],
+  [
+   73.830914,
+   18.56013
+  ],
+  [
+   73.830294,
+   18.559035
+  ],
+  [
+   73.823867,
+   18.567916
+  ],
+  [
+   73.829265,
+   18.557603
+  ],
+  [
+   73.832257,
+   18.552715
+  ],
+  [
+   73.818561,
+   18.566232
+  ],
+  [
+   73.830214,
+   18.552103
+  ],
+  [
+   73.827164,
+   18.560811
+  ],
+  [
+   73.832633,
+   18.550349
+  ],
+  [
+   73.824387,
+   18.557364
+  ],
+  [
+   73.834349,
+   18.57446
+  ],
+  [
+   73.821762,
+   18.554959
+  ],
+  [
+   73.831886,
+   18.560414
+  ],
+  [
+   73.823634,
+   18.554536
+  ],
+  [
+   73.838214,
+   18.563352
+  ],
+  [
+   73.826135,
+   18.553491
+  ],
+  [
+   73.837074,
+   18.566445
+  ],
+  [
+   73.82033,
+   18.561296
+  ],
+  [
+   73.843115,
+   18.57221
+  ],
+  [
+   73.827405,
+   18.56166
+  ],
+  [
+   73.832471,
+   18.533319
+  ],
+  [
+   73.834252,
+   18.561543
+  ],
+  [
+   73.826282,
+   18.548458
+  ],
+  [
+   73.83447,
+   18.54481
+  ],
+  [
+   73.829891,
+   18.561829
+  ]
+ ],
+ "summary": [
+  {
+   "variant": "isochrone: hull in PostgreSQL (legacy ST_ConcaveHull), whole graph",
+   "path": "/isochrone",
+   "params": {
+    "minutes": 15,
+    "hull": "postgis",
+    "edges": "all"
+   },
+   "points": 10,
+   "db_ms": {
+    "p50": 21627.7,
+    "p95": 49027.5,
+    "max": 65437.5
+   },
+   "api_ms": {
+    "p50": 2.4,
+    "p95": 22.7,
+    "max": 33.6
+   },
+   "net_ms": {
+    "p50": 33.2,
+    "p95": 90.6,
+    "max": 112.7
+   },
+   "total_ms": {
+    "p50": 21630.8,
+    "p95": 49033.3,
+    "max": 65440.4
+   },
+   "round_trip_ms": {
+    "p50": 21669.6,
+    "p95": 49116.8,
+    "max": 65553.1
+   }
+  },
+  {
+   "variant": "isochrone: hull in the API (shapely/GEOS 3.14), whole graph",
+   "path": "/isochrone",
+   "params": {
+    "minutes": 15,
+    "hull": "shapely",
+    "edges": "all"
+   },
+   "points": 50,
+   "db_ms": {
+    "p50": 56.8,
+    "p95": 82.6,
+    "max": 314.5
+   },
+   "api_ms": {
+    "p50": 2.0,
+    "p95": 11.2,
+    "max": 14.6
+   },
+   "net_ms": {
+    "p50": 21.0,
+    "p95": 71.5,
+    "max": 103.0
+   },
+   "total_ms": {
+    "p50": 59.2,
+    "p95": 88.1,
+    "max": 328.0
+   },
+   "round_trip_ms": {
+    "p50": 82.1,
+    "p95": 140.6,
+    "max": 424.7
+   }
+  },
+  {
+   "variant": "isochrone: hull in the API, edges around the click (default)",
+   "path": "/isochrone",
+   "params": {
+    "minutes": 15,
+    "hull": "shapely",
+    "edges": "bbox"
+   },
+   "points": 50,
+   "db_ms": {
+    "p50": 10.7,
+    "p95": 18.9,
+    "max": 25.6
+   },
+   "api_ms": {
+    "p50": 2.2,
+    "p95": 5.1,
+    "max": 10.4
+   },
+   "net_ms": {
+    "p50": 12.9,
+    "p95": 27.3,
+    "max": 45.9
+   },
+   "total_ms": {
+    "p50": 12.9,
+    "p95": 22.0,
+    "max": 36.0
+   },
+   "round_trip_ms": {
+    "p50": 26.4,
+    "p95": 47.0,
+    "max": 67.1
+   }
+  },
+  {
+   "variant": "nearest k=5: whole graph (default)",
+   "path": "/nearest",
+   "params": {
+    "k": 5,
+    "edges": "all"
+   },
+   "points": 50,
+   "db_ms": {
+    "p50": 45.0,
+    "p95": 65.4,
+    "max": 78.1
+   },
+   "api_ms": {
+    "p50": 0.6,
+    "p95": 1.3,
+    "max": 16.1
+   },
+   "net_ms": {
+    "p50": 19.2,
+    "p95": 42.0,
+    "max": 43.5
+   },
+   "total_ms": {
+    "p50": 45.8,
+    "p95": 66.0,
+    "max": 79.0
+   },
+   "round_trip_ms": {
+    "p50": 67.8,
+    "p95": 102.4,
+    "max": 111.7
+   }
+  },
+  {
+   "variant": "nearest k=5: expanding window 1.5 / 3 / 6 km, then whole graph",
+   "path": "/nearest",
+   "params": {
+    "k": 5,
+    "edges": "bbox"
+   },
+   "points": 50,
+   "db_ms": {
+    "p50": 9.1,
+    "p95": 68.5,
+    "max": 105.2
+   },
+   "api_ms": {
+    "p50": 0.7,
+    "p95": 2.3,
+    "max": 3.4
+   },
+   "net_ms": {
+    "p50": 19.3,
+    "p95": 42.6,
+    "max": 49.7
+   },
+   "total_ms": {
+    "p50": 10.2,
+    "p95": 69.2,
+    "max": 105.9
+   },
+   "round_trip_ms": {
+    "p50": 43.0,
+    "p95": 99.2,
+    "max": 146.2
+   }
+  }
+ ],
+ "raw": [
+  {
+   "variant": "isochrone: hull in PostgreSQL (legacy ST_ConcaveHull), whole graph",
+   "rows": [
+    {
+     "i": 0,
+     "lon": 73.825958,
+     "lat": 18.553082,
+     "db_ms": 28970.9,
+     "api_ms": 9.3,
+     "net_ms": 47.89,
+     "total_ms": 28980.2,
+     "round_trip_ms": 29028.1,
+     "bytes": 19593,
+     "reached_nodes": 144
+    },
+    {
+     "i": 1,
+     "lon": 73.816597,
+     "lat": 18.559489,
+     "db_ms": 18737.5,
+     "api_ms": 1.7,
+     "net_ms": 46.67,
+     "total_ms": 18739.2,
+     "round_trip_ms": 18785.9,
+     "bytes": 23414,
+     "reached_nodes": 272
+    },
+    {
+     "i": 2,
+     "lon": 73.821759,
+     "lat": 18.560998,
+     "db_ms": 24550.2,
+     "api_ms": 1.8,
+     "net_ms": 23.19,
+     "total_ms": 24552.0,
+     "round_trip_ms": 24575.2,
+     "bytes": 24378,
+     "reached_nodes": 114
+    },
+    {
+     "i": 3,
+     "lon": 73.823515,
+     "lat": 18.564994,
+     "db_ms": 9790.6,
+     "api_ms": 1.1,
+     "net_ms": 15.98,
+     "total_ms": 9791.7,
+     "round_trip_ms": 9807.7,
+     "bytes": 13608,
+     "reached_nodes": 84
+    },
+    {
+     "i": 4,
+     "lon": 73.830716,
+     "lat": 18.545384,
+     "db_ms": 17570.7,
+     "api_ms": 1.3,
+     "net_ms": 17.4,
+     "total_ms": 17572.0,
+     "round_trip_ms": 17589.4,
+     "bytes": 13800,
+     "reached_nodes": 119
+    },
+    {
+     "i": 5,
+     "lon": 73.817046,
+     "lat": 18.567169,
+     "db_ms": 24517.9,
+     "api_ms": 4.5,
+     "net_ms": 30.86,
+     "total_ms": 24522.4,
+     "round_trip_ms": 24553.3,
+     "bytes": 45072,
+     "reached_nodes": 179
+    },
+    {
+     "i": 6,
+     "lon": 73.816518,
+     "lat": 18.565589,
+     "db_ms": 17507.5,
+     "api_ms": 2.1,
+     "net_ms": 28.59,
+     "total_ms": 17509.6,
+     "round_trip_ms": 17538.2,
+     "bytes": 34885,
+     "reached_nodes": 247
+    },
+    {
+     "i": 7,
+     "lon": 73.836987,
+     "lat": 18.541002,
+     "db_ms": 26910.5,
+     "api_ms": 2.6,
+     "net_ms": 35.58,
+     "total_ms": 26913.1,
+     "round_trip_ms": 26948.7,
+     "bytes": 46489,
+     "reached_nodes": 282
+    },
+    {
+     "i": 8,
+     "lon": 73.835103,
+     "lat": 18.571793,
+     "db_ms": 7722.9,
+     "api_ms": 33.6,
+     "net_ms": 63.65,
+     "total_ms": 7756.5,
+     "round_trip_ms": 7820.2,
+     "bytes": 15127,
+     "reached_nodes": 230
+    },
+    {
+     "i": 9,
+     "lon": 73.831813,
+     "lat": 18.531472,
+     "db_ms": 65437.5,
+     "api_ms": 2.9,
+     "net_ms": 112.71,
+     "total_ms": 65440.4,
+     "round_trip_ms": 65553.1,
+     "bytes": 52308,
+     "reached_nodes": 634
+    }
+   ]
+  },
+  {
+   "variant": "isochrone: hull in the API (shapely/GEOS 3.14), whole graph",
+   "rows": [
+    {
+     "i": 0,
+     "lon": 73.825958,
+     "lat": 18.553082,
+     "db_ms": 314.5,
+     "api_ms": 13.5,
+     "net_ms": 96.7,
+     "total_ms": 328.0,
+     "round_trip_ms": 424.7,
+     "bytes": 1000,
+     "reached_nodes": 144
+    },
+    {
+     "i": 1,
+     "lon": 73.816597,
+     "lat": 18.559489,
+     "db_ms": 68.4,
+     "api_ms": 14.6,
+     "net_ms": 47.37,
+     "total_ms": 83.0,
+     "round_trip_ms": 130.4,
+     "bytes": 1308,
+     "reached_nodes": 272
+    },
+    {
+     "i": 2,
+     "lon": 73.821759,
+     "lat": 18.560998,
+     "db_ms": 67.9,
+     "api_ms": 1.6,
+     "net_ms": 30.84,
+     "total_ms": 69.5,
+     "round_trip_ms": 100.3,
+     "bytes": 847,
+     "reached_nodes": 114
+    },
+    {
+     "i": 3,
+     "lon": 73.823515,
+     "lat": 18.564994,
+     "db_ms": 60.9,
+     "api_ms": 1.7,
+     "net_ms": 43.19,
+     "total_ms": 62.6,
+     "round_trip_ms": 105.8,
+     "bytes": 1216,
+     "reached_nodes": 84
+    },
+    {
+     "i": 4,
+     "lon": 73.830716,
+     "lat": 18.545384,
+     "db_ms": 70.9,
+     "api_ms": 1.7,
+     "net_ms": 20.91,
+     "total_ms": 72.6,
+     "round_trip_ms": 93.5,
+     "bytes": 937,
+     "reached_nodes": 119
+    },
+    {
+     "i": 5,
+     "lon": 73.817046,
+     "lat": 18.567169,
+     "db_ms": 60.6,
+     "api_ms": 2.4,
+     "net_ms": 13.5,
+     "total_ms": 63.0,
+     "round_trip_ms": 76.5,
+     "bytes": 1407,
+     "reached_nodes": 179
+    },
+    {
+     "i": 6,
+     "lon": 73.816518,
+     "lat": 18.565589,
+     "db_ms": 70.5,
+     "api_ms": 2.7,
+     "net_ms": 37.16,
+     "total_ms": 73.2,
+     "round_trip_ms": 110.4,
+     "bytes": 1349,
+     "reached_nodes": 247
+    },
+    {
+     "i": 7,
+     "lon": 73.836987,
+     "lat": 18.541002,
+     "db_ms": 59.8,
+     "api_ms": 3.2,
+     "net_ms": 52.67,
+     "total_ms": 63.0,
+     "round_trip_ms": 115.7,
+     "bytes": 911,
+     "reached_nodes": 282
+    },
+    {
+     "i": 8,
+     "lon": 73.835103,
+     "lat": 18.571793,
+     "db_ms": 59.1,
+     "api_ms": 2.9,
+     "net_ms": 86.98,
+     "total_ms": 62.0,
+     "round_trip_ms": 149.0,
+     "bytes": 979,
+     "reached_nodes": 230
+    },
+    {
+     "i": 9,
+     "lon": 73.831813,
+     "lat": 18.531472,
+     "db_ms": 87.1,
+     "api_ms": 10.8,
+     "net_ms": 17.6,
+     "total_ms": 97.9,
+     "round_trip_ms": 115.5,
+     "bytes": 1679,
+     "reached_nodes": 634
+    },
+    {
+     "i": 10,
+     "lon": 73.841811,
+     "lat": 18.572294,
+     "db_ms": 57.1,
+     "api_ms": 1.3,
+     "net_ms": 19.51,
+     "total_ms": 58.4,
+     "round_trip_ms": 77.9,
+     "bytes": 1042,
+     "reached_nodes": 73
+    },
+    {
+     "i": 11,
+     "lon": 73.827927,
+     "lat": 18.55493,
+     "db_ms": 59.4,
+     "api_ms": 2.0,
+     "net_ms": 30.36,
+     "total_ms": 61.4,
+     "round_trip_ms": 91.8,
+     "bytes": 1069,
+     "reached_nodes": 176
+    },
+    {
+     "i": 12,
+     "lon": 73.835106,
+     "lat": 18.543931,
+     "db_ms": 90.3,
+     "api_ms": 2.0,
+     "net_ms": 26.16,
+     "total_ms": 92.3,
+     "round_trip_ms": 118.5,
+     "bytes": 844,
+     "reached_nodes": 166
+    },
+    {
+     "i": 13,
+     "lon": 73.823485,
+     "lat": 18.549712,
+     "db_ms": 57.7,
+     "api_ms": 2.2,
+     "net_ms": 15.29,
+     "total_ms": 59.9,
+     "round_trip_ms": 75.2,
+     "bytes": 976,
+     "reached_nodes": 190
+    },
+    {
+     "i": 14,
+     "lon": 73.836847,
+     "lat": 18.568015,
+     "db_ms": 77.0,
+     "api_ms": 1.9,
+     "net_ms": 48.55,
+     "total_ms": 78.9,
+     "round_trip_ms": 127.5,
+     "bytes": 1042,
+     "reached_nodes": 172
+    },
+    {
+     "i": 15,
+     "lon": 73.827572,
+     "lat": 18.548494,
+     "db_ms": 68.5,
+     "api_ms": 2.2,
+     "net_ms": 23.62,
+     "total_ms": 70.7,
+     "round_trip_ms": 94.3,
+     "bytes": 1485,
+     "reached_nodes": 200
+    },
+    {
+     "i": 16,
+     "lon": 73.840801,
+     "lat": 18.570476,
+     "db_ms": 66.0,
+     "api_ms": 2.1,
+     "net_ms": 22.58,
+     "total_ms": 68.1,
+     "round_trip_ms": 90.7,
+     "bytes": 1019,
+     "reached_nodes": 228
+    },
+    {
+     "i": 17,
+     "lon": 73.832622,
+     "lat": 18.545213,
+     "db_ms": 56.5,
+     "api_ms": 1.6,
+     "net_ms": 103.04,
+     "total_ms": 58.1,
+     "round_trip_ms": 161.1,
+     "bytes": 936,
+     "reached_nodes": 144
+    },
+    {
+     "i": 18,
+     "lon": 73.8266,
+     "lat": 18.554301,
+     "db_ms": 57.8,
+     "api_ms": 2.0,
+     "net_ms": 47.73,
+     "total_ms": 59.8,
+     "round_trip_ms": 107.5,
+     "bytes": 1284,
+     "reached_nodes": 173
+    },
+    {
+     "i": 19,
+     "lon": 73.819246,
+     "lat": 18.561512,
+     "db_ms": 57.0,
+     "api_ms": 2.1,
+     "net_ms": 40.23,
+     "total_ms": 59.1,
+     "round_trip_ms": 99.3,
+     "bytes": 975,
+     "reached_nodes": 123
+    },
+    {
+     "i": 20,
+     "lon": 73.816975,
+     "lat": 18.5674,
+     "db_ms": 65.9,
+     "api_ms": 1.9,
+     "net_ms": 20.0,
+     "total_ms": 67.8,
+     "round_trip_ms": 87.8,
+     "bytes": 1407,
+     "reached_nodes": 179
+    },
+    {
+     "i": 21,
+     "lon": 73.817467,
+     "lat": 18.557325,
+     "db_ms": 57.7,
+     "api_ms": 2.1,
+     "net_ms": 23.96,
+     "total_ms": 59.8,
+     "round_trip_ms": 83.8,
+     "bytes": 1136,
+     "reached_nodes": 249
+    },
+    {
+     "i": 22,
+     "lon": 73.81231,
+     "lat": 18.567848,
+     "db_ms": 58.0,
+     "api_ms": 2.5,
+     "net_ms": 21.16,
+     "total_ms": 60.5,
+     "round_trip_ms": 81.7,
+     "bytes": 1084,
+     "reached_nodes": 236
+    },
+    {
+     "i": 23,
+     "lon": 73.819055,
+     "lat": 18.560868,
+     "db_ms": 55.9,
+     "api_ms": 1.8,
+     "net_ms": 26.91,
+     "total_ms": 57.7,
+     "round_trip_ms": 84.6,
+     "bytes": 998,
+     "reached_nodes": 102
+    },
+    {
+     "i": 24,
+     "lon": 73.821871,
+     "lat": 18.563664,
+     "db_ms": 57.0,
+     "api_ms": 2.3,
+     "net_ms": 15.35,
+     "total_ms": 59.3,
+     "round_trip_ms": 74.7,
+     "bytes": 1348,
+     "reached_nodes": 167
+    },
+    {
+     "i": 25,
+     "lon": 73.830914,
+     "lat": 18.56013,
+     "db_ms": 57.7,
+     "api_ms": 1.9,
+     "net_ms": 28.48,
+     "total_ms": 59.6,
+     "round_trip_ms": 88.1,
+     "bytes": 849,
+     "reached_nodes": 155
+    },
+    {
+     "i": 26,
+     "lon": 73.830294,
+     "lat": 18.559035,
+     "db_ms": 46.7,
+     "api_ms": 1.6,
+     "net_ms": 36.55,
+     "total_ms": 48.3,
+     "round_trip_ms": 84.8,
+     "bytes": 893,
+     "reached_nodes": 132
+    },
+    {
+     "i": 27,
+     "lon": 73.823867,
+     "lat": 18.567916,
+     "db_ms": 54.0,
+     "api_ms": 1.2,
+     "net_ms": 15.64,
+     "total_ms": 55.2,
+     "round_trip_ms": 70.8,
+     "bytes": 806,
+     "reached_nodes": 29
+    },
+    {
+     "i": 28,
+     "lon": 73.829265,
+     "lat": 18.557603,
+     "db_ms": 55.6,
+     "api_ms": 6.5,
+     "net_ms": 33.24,
+     "total_ms": 62.1,
+     "round_trip_ms": 95.3,
+     "bytes": 890,
+     "reached_nodes": 146
+    },
+    {
+     "i": 29,
+     "lon": 73.832257,
+     "lat": 18.552715,
+     "db_ms": 56.5,
+     "api_ms": 2.0,
+     "net_ms": 24.04,
+     "total_ms": 58.5,
+     "round_trip_ms": 82.5,
+     "bytes": 1158,
+     "reached_nodes": 103
+    },
+    {
+     "i": 30,
+     "lon": 73.818561,
+     "lat": 18.566232,
+     "db_ms": 57.5,
+     "api_ms": 2.5,
+     "net_ms": 20.87,
+     "total_ms": 60.0,
+     "round_trip_ms": 80.9,
+     "bytes": 1417,
+     "reached_nodes": 266
+    },
+    {
+     "i": 31,
+     "lon": 73.830214,
+     "lat": 18.552103,
+     "db_ms": 46.8,
+     "api_ms": 2.0,
+     "net_ms": 14.11,
+     "total_ms": 48.8,
+     "round_trip_ms": 62.9,
+     "bytes": 1022,
+     "reached_nodes": 143
+    },
+    {
+     "i": 32,
+     "lon": 73.827164,
+     "lat": 18.560811,
+     "db_ms": 47.7,
+     "api_ms": 2.8,
+     "net_ms": 14.05,
+     "total_ms": 50.5,
+     "round_trip_ms": 64.6,
+     "bytes": 1021,
+     "reached_nodes": 226
+    },
+    {
+     "i": 33,
+     "lon": 73.832633,
+     "lat": 18.550349,
+     "db_ms": 45.3,
+     "api_ms": 1.4,
+     "net_ms": 11.98,
+     "total_ms": 46.7,
+     "round_trip_ms": 58.7,
+     "bytes": 982,
+     "reached_nodes": 101
+    },
+    {
+     "i": 34,
+     "lon": 73.824387,
+     "lat": 18.557364,
+     "db_ms": 43.1,
+     "api_ms": 1.9,
+     "net_ms": 13.97,
+     "total_ms": 45.0,
+     "round_trip_ms": 59.0,
+     "bytes": 1430,
+     "reached_nodes": 148
+    },
+    {
+     "i": 35,
+     "lon": 73.834349,
+     "lat": 18.57446,
+     "db_ms": 50.3,
+     "api_ms": 11.6,
+     "net_ms": 26.39,
+     "total_ms": 61.9,
+     "round_trip_ms": 88.3,
+     "bytes": 890,
+     "reached_nodes": 219
+    },
+    {
+     "i": 36,
+     "lon": 73.821762,
+     "lat": 18.554959,
+     "db_ms": 48.0,
+     "api_ms": 1.7,
+     "net_ms": 25.5,
+     "total_ms": 49.7,
+     "round_trip_ms": 75.2,
+     "bytes": 1193,
+     "reached_nodes": 127
+    },
+    {
+     "i": 37,
+     "lon": 73.831886,
+     "lat": 18.560414,
+     "db_ms": 49.3,
+     "api_ms": 1.7,
+     "net_ms": 13.38,
+     "total_ms": 51.0,
+     "round_trip_ms": 64.4,
+     "bytes": 849,
+     "reached_nodes": 154
+    },
+    {
+     "i": 38,
+     "lon": 73.823634,
+     "lat": 18.554536,
+     "db_ms": 40.4,
+     "api_ms": 1.7,
+     "net_ms": 14.37,
+     "total_ms": 42.1,
+     "round_trip_ms": 56.5,
+     "bytes": 864,
+     "reached_nodes": 142
+    },
+    {
+     "i": 39,
+     "lon": 73.838214,
+     "lat": 18.563352,
+     "db_ms": 49.4,
+     "api_ms": 2.2,
+     "net_ms": 14.42,
+     "total_ms": 51.6,
+     "round_trip_ms": 66.0,
+     "bytes": 1414,
+     "reached_nodes": 247
+    },
+    {
+     "i": 40,
+     "lon": 73.826135,
+     "lat": 18.553491,
+     "db_ms": 47.1,
+     "api_ms": 1.9,
+     "net_ms": 16.8,
+     "total_ms": 49.0,
+     "round_trip_ms": 65.8,
+     "bytes": 1285,
+     "reached_nodes": 177
+    },
+    {
+     "i": 41,
+     "lon": 73.837074,
+     "lat": 18.566445,
+     "db_ms": 44.8,
+     "api_ms": 1.4,
+     "net_ms": 10.31,
+     "total_ms": 46.2,
+     "round_trip_ms": 56.5,
+     "bytes": 1066,
+     "reached_nodes": 96
+    },
+    {
+     "i": 42,
+     "lon": 73.82033,
+     "lat": 18.561296,
+     "db_ms": 42.0,
+     "api_ms": 2.0,
+     "net_ms": 12.88,
+     "total_ms": 44.0,
+     "round_trip_ms": 56.9,
+     "bytes": 893,
+     "reached_nodes": 119
+    },
+    {
+     "i": 43,
+     "lon": 73.843115,
+     "lat": 18.57221,
+     "db_ms": 44.1,
+     "api_ms": 1.5,
+     "net_ms": 13.03,
+     "total_ms": 45.6,
+     "round_trip_ms": 58.6,
+     "bytes": 1041,
+     "reached_nodes": 73
+    },
+    {
+     "i": 44,
+     "lon": 73.827405,
+     "lat": 18.56166,
+     "db_ms": 49.8,
+     "api_ms": 1.9,
+     "net_ms": 17.16,
+     "total_ms": 51.7,
+     "round_trip_ms": 68.9,
+     "bytes": 1067,
+     "reached_nodes": 170
+    },
+    {
+     "i": 45,
+     "lon": 73.832471,
+     "lat": 18.533319,
+     "db_ms": 52.6,
+     "api_ms": 4.3,
+     "net_ms": 17.3,
+     "total_ms": 56.9,
+     "round_trip_ms": 74.2,
+     "bytes": 1526,
+     "reached_nodes": 540
+    },
+    {
+     "i": 46,
+     "lon": 73.834252,
+     "lat": 18.561543,
+     "db_ms": 41.4,
+     "api_ms": 2.0,
+     "net_ms": 15.87,
+     "total_ms": 43.4,
+     "round_trip_ms": 59.3,
+     "bytes": 1086,
+     "reached_nodes": 195
+    },
+    {
+     "i": 47,
+     "lon": 73.826282,
+     "lat": 18.548458,
+     "db_ms": 44.2,
+     "api_ms": 3.1,
+     "net_ms": 14.16,
+     "total_ms": 47.3,
+     "round_trip_ms": 61.5,
+     "bytes": 1067,
+     "reached_nodes": 200
+    },
+    {
+     "i": 48,
+     "lon": 73.83447,
+     "lat": 18.54481,
+     "db_ms": 43.3,
+     "api_ms": 1.6,
+     "net_ms": 29.49,
+     "total_ms": 44.9,
+     "round_trip_ms": 74.4,
+     "bytes": 1175,
+     "reached_nodes": 143
+    },
+    {
+     "i": 49,
+     "lon": 73.829891,
+     "lat": 18.561829,
+     "db_ms": 47.9,
+     "api_ms": 2.4,
+     "net_ms": 14.33,
+     "total_ms": 50.3,
+     "round_trip_ms": 64.6,
+     "bytes": 1069,
+     "reached_nodes": 220
+    }
+   ]
+  },
+  {
+   "variant": "isochrone: hull in the API, edges around the click (default)",
+   "rows": [
+    {
+     "i": 0,
+     "lon": 73.825958,
+     "lat": 18.553082,
+     "db_ms": 10.7,
+     "api_ms": 1.9,
+     "net_ms": 24.9,
+     "total_ms": 12.6,
+     "round_trip_ms": 37.5,
+     "bytes": 999,
+     "reached_nodes": 144
+    },
+    {
+     "i": 1,
+     "lon": 73.816597,
+     "lat": 18.559489,
+     "db_ms": 18.7,
+     "api_ms": 2.5,
+     "net_ms": 45.86,
+     "total_ms": 21.2,
+     "round_trip_ms": 67.1,
+     "bytes": 1309,
+     "reached_nodes": 272
+    },
+    {
+     "i": 2,
+     "lon": 73.821759,
+     "lat": 18.560998,
+     "db_ms": 9.2,
+     "api_ms": 1.8,
+     "net_ms": 11.39,
+     "total_ms": 11.0,
+     "round_trip_ms": 22.4,
+     "bytes": 847,
+     "reached_nodes": 114
+    },
+    {
+     "i": 3,
+     "lon": 73.823515,
+     "lat": 18.564994,
+     "db_ms": 10.9,
+     "api_ms": 1.6,
+     "net_ms": 12.35,
+     "total_ms": 12.5,
+     "round_trip_ms": 24.9,
+     "bytes": 1217,
+     "reached_nodes": 84
+    },
+    {
+     "i": 4,
+     "lon": 73.830716,
+     "lat": 18.545384,
+     "db_ms": 11.1,
+     "api_ms": 4.8,
+     "net_ms": 16.02,
+     "total_ms": 15.9,
+     "round_trip_ms": 31.9,
+     "bytes": 938,
+     "reached_nodes": 119
+    },
+    {
+     "i": 5,
+     "lon": 73.817046,
+     "lat": 18.567169,
+     "db_ms": 15.0,
+     "api_ms": 2.1,
+     "net_ms": 25.74,
+     "total_ms": 17.1,
+     "round_trip_ms": 42.8,
+     "bytes": 1408,
+     "reached_nodes": 179
+    },
+    {
+     "i": 6,
+     "lon": 73.816518,
+     "lat": 18.565589,
+     "db_ms": 10.7,
+     "api_ms": 2.7,
+     "net_ms": 11.63,
+     "total_ms": 13.4,
+     "round_trip_ms": 25.0,
+     "bytes": 1350,
+     "reached_nodes": 247
+    },
+    {
+     "i": 7,
+     "lon": 73.836987,
+     "lat": 18.541002,
+     "db_ms": 12.1,
+     "api_ms": 5.3,
+     "net_ms": 32.95,
+     "total_ms": 17.4,
+     "round_trip_ms": 50.4,
+     "bytes": 912,
+     "reached_nodes": 282
+    },
+    {
+     "i": 8,
+     "lon": 73.835103,
+     "lat": 18.571793,
+     "db_ms": 15.3,
+     "api_ms": 2.6,
+     "net_ms": 17.27,
+     "total_ms": 17.9,
+     "round_trip_ms": 35.2,
+     "bytes": 980,
+     "reached_nodes": 230
+    },
+    {
+     "i": 9,
+     "lon": 73.831813,
+     "lat": 18.531472,
+     "db_ms": 25.6,
+     "api_ms": 10.4,
+     "net_ms": 15.04,
+     "total_ms": 36.0,
+     "round_trip_ms": 51.0,
+     "bytes": 1680,
+     "reached_nodes": 634
+    },
+    {
+     "i": 10,
+     "lon": 73.841811,
+     "lat": 18.572294,
+     "db_ms": 11.3,
+     "api_ms": 3.6,
+     "net_ms": 12.75,
+     "total_ms": 14.9,
+     "round_trip_ms": 27.7,
+     "bytes": 1043,
+     "reached_nodes": 73
+    },
+    {
+     "i": 11,
+     "lon": 73.827927,
+     "lat": 18.55493,
+     "db_ms": 10.3,
+     "api_ms": 1.9,
+     "net_ms": 12.19,
+     "total_ms": 12.2,
+     "round_trip_ms": 24.4,
+     "bytes": 1070,
+     "reached_nodes": 176
+    },
+    {
+     "i": 12,
+     "lon": 73.835106,
+     "lat": 18.543931,
+     "db_ms": 11.2,
+     "api_ms": 3.8,
+     "net_ms": 11.44,
+     "total_ms": 15.0,
+     "round_trip_ms": 26.4,
+     "bytes": 845,
+     "reached_nodes": 166
+    },
+    {
+     "i": 13,
+     "lon": 73.823485,
+     "lat": 18.549712,
+     "db_ms": 11.8,
+     "api_ms": 2.8,
+     "net_ms": 12.17,
+     "total_ms": 14.6,
+     "round_trip_ms": 26.8,
+     "bytes": 977,
+     "reached_nodes": 190
+    },
+    {
+     "i": 14,
+     "lon": 73.836847,
+     "lat": 18.568015,
+     "db_ms": 10.7,
+     "api_ms": 1.9,
+     "net_ms": 15.24,
+     "total_ms": 12.6,
+     "round_trip_ms": 27.8,
+     "bytes": 1043,
+     "reached_nodes": 172
+    },
+    {
+     "i": 15,
+     "lon": 73.827572,
+     "lat": 18.548494,
+     "db_ms": 11.1,
+     "api_ms": 2.1,
+     "net_ms": 12.02,
+     "total_ms": 13.2,
+     "round_trip_ms": 25.2,
+     "bytes": 1486,
+     "reached_nodes": 200
+    },
+    {
+     "i": 16,
+     "lon": 73.840801,
+     "lat": 18.570476,
+     "db_ms": 14.7,
+     "api_ms": 2.4,
+     "net_ms": 10.19,
+     "total_ms": 17.1,
+     "round_trip_ms": 27.3,
+     "bytes": 1020,
+     "reached_nodes": 228
+    },
+    {
+     "i": 17,
+     "lon": 73.832622,
+     "lat": 18.545213,
+     "db_ms": 10.6,
+     "api_ms": 2.0,
+     "net_ms": 12.32,
+     "total_ms": 12.6,
+     "round_trip_ms": 24.9,
+     "bytes": 937,
+     "reached_nodes": 144
+    },
+    {
+     "i": 18,
+     "lon": 73.8266,
+     "lat": 18.554301,
+     "db_ms": 9.4,
+     "api_ms": 1.9,
+     "net_ms": 25.24,
+     "total_ms": 11.3,
+     "round_trip_ms": 36.5,
+     "bytes": 1284,
+     "reached_nodes": 173
+    },
+    {
+     "i": 19,
+     "lon": 73.819246,
+     "lat": 18.561512,
+     "db_ms": 10.0,
+     "api_ms": 1.6,
+     "net_ms": 17.17,
+     "total_ms": 11.6,
+     "round_trip_ms": 28.8,
+     "bytes": 976,
+     "reached_nodes": 123
+    },
+    {
+     "i": 20,
+     "lon": 73.816975,
+     "lat": 18.5674,
+     "db_ms": 10.1,
+     "api_ms": 1.9,
+     "net_ms": 12.77,
+     "total_ms": 12.0,
+     "round_trip_ms": 24.8,
+     "bytes": 1408,
+     "reached_nodes": 179
+    },
+    {
+     "i": 21,
+     "lon": 73.817467,
+     "lat": 18.557325,
+     "db_ms": 10.9,
+     "api_ms": 2.7,
+     "net_ms": 12.57,
+     "total_ms": 13.6,
+     "round_trip_ms": 26.2,
+     "bytes": 1137,
+     "reached_nodes": 249
+    },
+    {
+     "i": 22,
+     "lon": 73.81231,
+     "lat": 18.567848,
+     "db_ms": 10.2,
+     "api_ms": 2.5,
+     "net_ms": 11.0,
+     "total_ms": 12.7,
+     "round_trip_ms": 23.7,
+     "bytes": 1085,
+     "reached_nodes": 236
+    },
+    {
+     "i": 23,
+     "lon": 73.819055,
+     "lat": 18.560868,
+     "db_ms": 16.6,
+     "api_ms": 1.5,
+     "net_ms": 13.89,
+     "total_ms": 18.1,
+     "round_trip_ms": 32.0,
+     "bytes": 999,
+     "reached_nodes": 102
+    },
+    {
+     "i": 24,
+     "lon": 73.821871,
+     "lat": 18.563664,
+     "db_ms": 10.7,
+     "api_ms": 2.6,
+     "net_ms": 19.45,
+     "total_ms": 13.3,
+     "round_trip_ms": 32.7,
+     "bytes": 1349,
+     "reached_nodes": 167
+    },
+    {
+     "i": 25,
+     "lon": 73.830914,
+     "lat": 18.56013,
+     "db_ms": 11.3,
+     "api_ms": 3.4,
+     "net_ms": 24.59,
+     "total_ms": 14.7,
+     "round_trip_ms": 39.3,
+     "bytes": 850,
+     "reached_nodes": 155
+    },
+    {
+     "i": 26,
+     "lon": 73.830294,
+     "lat": 18.559035,
+     "db_ms": 11.3,
+     "api_ms": 2.0,
+     "net_ms": 15.8,
+     "total_ms": 13.3,
+     "round_trip_ms": 29.1,
+     "bytes": 894,
+     "reached_nodes": 132
+    },
+    {
+     "i": 27,
+     "lon": 73.823867,
+     "lat": 18.567916,
+     "db_ms": 8.3,
+     "api_ms": 1.0,
+     "net_ms": 12.92,
+     "total_ms": 9.3,
+     "round_trip_ms": 22.2,
+     "bytes": 805,
+     "reached_nodes": 29
+    },
+    {
+     "i": 28,
+     "lon": 73.829265,
+     "lat": 18.557603,
+     "db_ms": 9.1,
+     "api_ms": 2.0,
+     "net_ms": 12.88,
+     "total_ms": 11.1,
+     "round_trip_ms": 24.0,
+     "bytes": 890,
+     "reached_nodes": 146
+    },
+    {
+     "i": 29,
+     "lon": 73.832257,
+     "lat": 18.552715,
+     "db_ms": 14.1,
+     "api_ms": 2.5,
+     "net_ms": 10.56,
+     "total_ms": 16.6,
+     "round_trip_ms": 27.2,
+     "bytes": 1159,
+     "reached_nodes": 103
+    },
+    {
+     "i": 30,
+     "lon": 73.818561,
+     "lat": 18.566232,
+     "db_ms": 11.3,
+     "api_ms": 3.0,
+     "net_ms": 12.03,
+     "total_ms": 14.3,
+     "round_trip_ms": 26.3,
+     "bytes": 1418,
+     "reached_nodes": 266
+    },
+    {
+     "i": 31,
+     "lon": 73.830214,
+     "lat": 18.552103,
+     "db_ms": 10.4,
+     "api_ms": 1.6,
+     "net_ms": 13.08,
+     "total_ms": 12.0,
+     "round_trip_ms": 25.1,
+     "bytes": 1023,
+     "reached_nodes": 143
+    },
+    {
+     "i": 32,
+     "lon": 73.827164,
+     "lat": 18.560811,
+     "db_ms": 9.8,
+     "api_ms": 2.2,
+     "net_ms": 28.5,
+     "total_ms": 12.0,
+     "round_trip_ms": 40.5,
+     "bytes": 1021,
+     "reached_nodes": 226
+    },
+    {
+     "i": 33,
+     "lon": 73.832633,
+     "lat": 18.550349,
+     "db_ms": 9.2,
+     "api_ms": 1.4,
+     "net_ms": 9.64,
+     "total_ms": 10.6,
+     "round_trip_ms": 20.2,
+     "bytes": 982,
+     "reached_nodes": 101
+    },
+    {
+     "i": 34,
+     "lon": 73.824387,
+     "lat": 18.557364,
+     "db_ms": 9.0,
+     "api_ms": 1.9,
+     "net_ms": 11.89,
+     "total_ms": 10.9,
+     "round_trip_ms": 22.8,
+     "bytes": 1430,
+     "reached_nodes": 148
+    },
+    {
+     "i": 35,
+     "lon": 73.834349,
+     "lat": 18.57446,
+     "db_ms": 10.4,
+     "api_ms": 2.4,
+     "net_ms": 13.67,
+     "total_ms": 12.8,
+     "round_trip_ms": 26.5,
+     "bytes": 891,
+     "reached_nodes": 219
+    },
+    {
+     "i": 36,
+     "lon": 73.821762,
+     "lat": 18.554959,
+     "db_ms": 10.6,
+     "api_ms": 2.2,
+     "net_ms": 14.8,
+     "total_ms": 12.8,
+     "round_trip_ms": 27.6,
+     "bytes": 1194,
+     "reached_nodes": 127
+    },
+    {
+     "i": 37,
+     "lon": 73.831886,
+     "lat": 18.560414,
+     "db_ms": 9.1,
+     "api_ms": 2.0,
+     "net_ms": 10.25,
+     "total_ms": 11.1,
+     "round_trip_ms": 21.4,
+     "bytes": 849,
+     "reached_nodes": 154
+    },
+    {
+     "i": 38,
+     "lon": 73.823634,
+     "lat": 18.554536,
+     "db_ms": 9.1,
+     "api_ms": 1.9,
+     "net_ms": 10.73,
+     "total_ms": 11.0,
+     "round_trip_ms": 21.7,
+     "bytes": 864,
+     "reached_nodes": 142
+    },
+    {
+     "i": 39,
+     "lon": 73.838214,
+     "lat": 18.563352,
+     "db_ms": 11.0,
+     "api_ms": 3.8,
+     "net_ms": 10.06,
+     "total_ms": 14.8,
+     "round_trip_ms": 24.9,
+     "bytes": 1415,
+     "reached_nodes": 247
+    },
+    {
+     "i": 40,
+     "lon": 73.826135,
+     "lat": 18.553491,
+     "db_ms": 9.5,
+     "api_ms": 2.1,
+     "net_ms": 13.32,
+     "total_ms": 11.6,
+     "round_trip_ms": 24.9,
+     "bytes": 1285,
+     "reached_nodes": 177
+    },
+    {
+     "i": 41,
+     "lon": 73.837074,
+     "lat": 18.566445,
+     "db_ms": 9.7,
+     "api_ms": 1.5,
+     "net_ms": 14.38,
+     "total_ms": 11.2,
+     "round_trip_ms": 25.6,
+     "bytes": 1066,
+     "reached_nodes": 96
+    },
+    {
+     "i": 42,
+     "lon": 73.82033,
+     "lat": 18.561296,
+     "db_ms": 9.6,
+     "api_ms": 1.8,
+     "net_ms": 12.72,
+     "total_ms": 11.4,
+     "round_trip_ms": 24.1,
+     "bytes": 893,
+     "reached_nodes": 119
+    },
+    {
+     "i": 43,
+     "lon": 73.843115,
+     "lat": 18.57221,
+     "db_ms": 9.1,
+     "api_ms": 1.9,
+     "net_ms": 12.48,
+     "total_ms": 11.0,
+     "round_trip_ms": 23.5,
+     "bytes": 1041,
+     "reached_nodes": 73
+    },
+    {
+     "i": 44,
+     "lon": 73.827405,
+     "lat": 18.56166,
+     "db_ms": 19.8,
+     "api_ms": 2.9,
+     "net_ms": 12.61,
+     "total_ms": 22.7,
+     "round_trip_ms": 35.3,
+     "bytes": 1068,
+     "reached_nodes": 170
+    },
+    {
+     "i": 45,
+     "lon": 73.832471,
+     "lat": 18.533319,
+     "db_ms": 19.0,
+     "api_ms": 8.3,
+     "net_ms": 13.37,
+     "total_ms": 27.3,
+     "round_trip_ms": 40.7,
+     "bytes": 1527,
+     "reached_nodes": 540
+    },
+    {
+     "i": 46,
+     "lon": 73.834252,
+     "lat": 18.561543,
+     "db_ms": 9.8,
+     "api_ms": 2.7,
+     "net_ms": 11.51,
+     "total_ms": 12.5,
+     "round_trip_ms": 24.0,
+     "bytes": 1086,
+     "reached_nodes": 195
+    },
+    {
+     "i": 47,
+     "lon": 73.826282,
+     "lat": 18.548458,
+     "db_ms": 10.7,
+     "api_ms": 2.3,
+     "net_ms": 13.26,
+     "total_ms": 13.0,
+     "round_trip_ms": 26.3,
+     "bytes": 1068,
+     "reached_nodes": 200
+    },
+    {
+     "i": 48,
+     "lon": 73.83447,
+     "lat": 18.54481,
+     "db_ms": 11.3,
+     "api_ms": 2.5,
+     "net_ms": 17.31,
+     "total_ms": 13.8,
+     "round_trip_ms": 31.1,
+     "bytes": 1176,
+     "reached_nodes": 143
+    },
+    {
+     "i": 49,
+     "lon": 73.829891,
+     "lat": 18.561829,
+     "db_ms": 12.1,
+     "api_ms": 2.4,
+     "net_ms": 13.74,
+     "total_ms": 14.5,
+     "round_trip_ms": 28.2,
+     "bytes": 1070,
+     "reached_nodes": 220
+    }
+   ]
+  },
+  {
+   "variant": "nearest k=5: whole graph (default)",
+   "rows": [
+    {
+     "i": 0,
+     "lon": 73.825958,
+     "lat": 18.553082,
+     "db_ms": 40.7,
+     "api_ms": 0.6,
+     "net_ms": 11.3,
+     "total_ms": 41.3,
+     "round_trip_ms": 52.6,
+     "bytes": 1456,
+     "window_radius_m": null
+    },
+    {
+     "i": 1,
+     "lon": 73.816597,
+     "lat": 18.559489,
+     "db_ms": 31.1,
+     "api_ms": 0.6,
+     "net_ms": 11.16,
+     "total_ms": 31.7,
+     "round_trip_ms": 42.9,
+     "bytes": 1459,
+     "window_radius_m": null
+    },
+    {
+     "i": 2,
+     "lon": 73.821759,
+     "lat": 18.560998,
+     "db_ms": 32.2,
+     "api_ms": 0.6,
+     "net_ms": 19.81,
+     "total_ms": 32.8,
+     "round_trip_ms": 52.6,
+     "bytes": 1492,
+     "window_radius_m": null
+    },
+    {
+     "i": 3,
+     "lon": 73.823515,
+     "lat": 18.564994,
+     "db_ms": 44.3,
+     "api_ms": 0.6,
+     "net_ms": 32.42,
+     "total_ms": 44.9,
+     "round_trip_ms": 77.3,
+     "bytes": 1492,
+     "window_radius_m": null
+    },
+    {
+     "i": 4,
+     "lon": 73.830716,
+     "lat": 18.545384,
+     "db_ms": 41.0,
+     "api_ms": 0.6,
+     "net_ms": 14.99,
+     "total_ms": 41.6,
+     "round_trip_ms": 56.6,
+     "bytes": 1479,
+     "window_radius_m": null
+    },
+    {
+     "i": 5,
+     "lon": 73.817046,
+     "lat": 18.567169,
+     "db_ms": 62.7,
+     "api_ms": 0.7,
+     "net_ms": 40.93,
+     "total_ms": 63.4,
+     "round_trip_ms": 104.3,
+     "bytes": 1488,
+     "window_radius_m": null
+    },
+    {
+     "i": 6,
+     "lon": 73.816518,
+     "lat": 18.565589,
+     "db_ms": 53.4,
+     "api_ms": 0.6,
+     "net_ms": 20.25,
+     "total_ms": 54.0,
+     "round_trip_ms": 74.2,
+     "bytes": 1488,
+     "window_radius_m": null
+    },
+    {
+     "i": 7,
+     "lon": 73.836987,
+     "lat": 18.541002,
+     "db_ms": 44.4,
+     "api_ms": 0.7,
+     "net_ms": 17.87,
+     "total_ms": 45.1,
+     "round_trip_ms": 63.0,
+     "bytes": 1531,
+     "window_radius_m": null
+    },
+    {
+     "i": 8,
+     "lon": 73.835103,
+     "lat": 18.571793,
+     "db_ms": 68.2,
+     "api_ms": 0.6,
+     "net_ms": 42.81,
+     "total_ms": 68.8,
+     "round_trip_ms": 111.6,
+     "bytes": 1491,
+     "window_radius_m": null
+    },
+    {
+     "i": 9,
+     "lon": 73.831813,
+     "lat": 18.531472,
+     "db_ms": 52.0,
+     "api_ms": 0.7,
+     "net_ms": 17.97,
+     "total_ms": 52.7,
+     "round_trip_ms": 70.7,
+     "bytes": 1527,
+     "window_radius_m": null
+    },
+    {
+     "i": 10,
+     "lon": 73.841811,
+     "lat": 18.572294,
+     "db_ms": 57.2,
+     "api_ms": 0.6,
+     "net_ms": 19.7,
+     "total_ms": 57.8,
+     "round_trip_ms": 77.5,
+     "bytes": 1497,
+     "window_radius_m": null
+    },
+    {
+     "i": 11,
+     "lon": 73.827927,
+     "lat": 18.55493,
+     "db_ms": 55.4,
+     "api_ms": 0.8,
+     "net_ms": 35.75,
+     "total_ms": 56.2,
+     "round_trip_ms": 91.9,
+     "bytes": 1455,
+     "window_radius_m": null
+    },
+    {
+     "i": 12,
+     "lon": 73.835106,
+     "lat": 18.543931,
+     "db_ms": 43.4,
+     "api_ms": 0.7,
+     "net_ms": 12.99,
+     "total_ms": 44.1,
+     "round_trip_ms": 57.1,
+     "bytes": 1510,
+     "window_radius_m": null
+    },
+    {
+     "i": 13,
+     "lon": 73.823485,
+     "lat": 18.549712,
+     "db_ms": 42.9,
+     "api_ms": 0.7,
+     "net_ms": 12.17,
+     "total_ms": 43.6,
+     "round_trip_ms": 55.8,
+     "bytes": 1514,
+     "window_radius_m": null
+    },
+    {
+     "i": 14,
+     "lon": 73.836847,
+     "lat": 18.568015,
+     "db_ms": 41.1,
+     "api_ms": 0.6,
+     "net_ms": 14.34,
+     "total_ms": 41.7,
+     "round_trip_ms": 56.0,
+     "bytes": 1537,
+     "window_radius_m": null
+    },
+    {
+     "i": 15,
+     "lon": 73.827572,
+     "lat": 18.548494,
+     "db_ms": 44.8,
+     "api_ms": 0.7,
+     "net_ms": 10.42,
+     "total_ms": 45.5,
+     "round_trip_ms": 55.9,
+     "bytes": 1488,
+     "window_radius_m": null
+    },
+    {
+     "i": 16,
+     "lon": 73.840801,
+     "lat": 18.570476,
+     "db_ms": 43.7,
+     "api_ms": 0.6,
+     "net_ms": 13.61,
+     "total_ms": 44.3,
+     "round_trip_ms": 57.9,
+     "bytes": 1492,
+     "window_radius_m": null
+    },
+    {
+     "i": 17,
+     "lon": 73.832622,
+     "lat": 18.545213,
+     "db_ms": 39.6,
+     "api_ms": 0.7,
+     "net_ms": 14.64,
+     "total_ms": 40.3,
+     "round_trip_ms": 54.9,
+     "bytes": 1493,
+     "window_radius_m": null
+    },
+    {
+     "i": 18,
+     "lon": 73.8266,
+     "lat": 18.554301,
+     "db_ms": 48.4,
+     "api_ms": 0.6,
+     "net_ms": 17.76,
+     "total_ms": 49.0,
+     "round_trip_ms": 66.8,
+     "bytes": 1451,
+     "window_radius_m": null
+    },
+    {
+     "i": 19,
+     "lon": 73.819246,
+     "lat": 18.561512,
+     "db_ms": 44.8,
+     "api_ms": 0.7,
+     "net_ms": 23.28,
+     "total_ms": 45.5,
+     "round_trip_ms": 68.8,
+     "bytes": 1492,
+     "window_radius_m": null
+    },
+    {
+     "i": 20,
+     "lon": 73.816975,
+     "lat": 18.5674,
+     "db_ms": 35.3,
+     "api_ms": 0.6,
+     "net_ms": 15.98,
+     "total_ms": 35.9,
+     "round_trip_ms": 51.9,
+     "bytes": 1486,
+     "window_radius_m": null
+    },
+    {
+     "i": 21,
+     "lon": 73.817467,
+     "lat": 18.557325,
+     "db_ms": 38.9,
+     "api_ms": 1.6,
+     "net_ms": 12.57,
+     "total_ms": 40.5,
+     "round_trip_ms": 53.1,
+     "bytes": 1458,
+     "window_radius_m": null
+    },
+    {
+     "i": 22,
+     "lon": 73.81231,
+     "lat": 18.567848,
+     "db_ms": 45.2,
+     "api_ms": 0.8,
+     "net_ms": 13.88,
+     "total_ms": 46.0,
+     "round_trip_ms": 59.9,
+     "bytes": 1437,
+     "window_radius_m": null
+    },
+    {
+     "i": 23,
+     "lon": 73.819055,
+     "lat": 18.560868,
+     "db_ms": 43.6,
+     "api_ms": 0.7,
+     "net_ms": 13.21,
+     "total_ms": 44.3,
+     "round_trip_ms": 57.5,
+     "bytes": 1493,
+     "window_radius_m": null
+    },
+    {
+     "i": 24,
+     "lon": 73.821871,
+     "lat": 18.563664,
+     "db_ms": 45.8,
+     "api_ms": 0.7,
+     "net_ms": 13.03,
+     "total_ms": 46.5,
+     "round_trip_ms": 59.5,
+     "bytes": 1490,
+     "window_radius_m": null
+    },
+    {
+     "i": 25,
+     "lon": 73.830914,
+     "lat": 18.56013,
+     "db_ms": 40.6,
+     "api_ms": 1.6,
+     "net_ms": 15.7,
+     "total_ms": 42.2,
+     "round_trip_ms": 57.9,
+     "bytes": 1491,
+     "window_radius_m": null
+    },
+    {
+     "i": 26,
+     "lon": 73.830294,
+     "lat": 18.559035,
+     "db_ms": 45.3,
+     "api_ms": 0.5,
+     "net_ms": 23.11,
+     "total_ms": 45.8,
+     "round_trip_ms": 68.9,
+     "bytes": 1492,
+     "window_radius_m": null
+    },
+    {
+     "i": 27,
+     "lon": 73.823867,
+     "lat": 18.567916,
+     "db_ms": 46.2,
+     "api_ms": 0.7,
+     "net_ms": 31.25,
+     "total_ms": 46.9,
+     "round_trip_ms": 78.1,
+     "bytes": 1494,
+     "window_radius_m": null
+    },
+    {
+     "i": 28,
+     "lon": 73.829265,
+     "lat": 18.557603,
+     "db_ms": 45.1,
+     "api_ms": 0.6,
+     "net_ms": 39.96,
+     "total_ms": 45.7,
+     "round_trip_ms": 85.7,
+     "bytes": 1504,
+     "window_radius_m": null
+    },
+    {
+     "i": 29,
+     "lon": 73.832257,
+     "lat": 18.552715,
+     "db_ms": 54.0,
+     "api_ms": 0.6,
+     "net_ms": 23.97,
+     "total_ms": 54.6,
+     "round_trip_ms": 78.6,
+     "bytes": 1534,
+     "window_radius_m": null
+    },
+    {
+     "i": 30,
+     "lon": 73.818561,
+     "lat": 18.566232,
+     "db_ms": 56.5,
+     "api_ms": 0.6,
+     "net_ms": 25.27,
+     "total_ms": 57.1,
+     "round_trip_ms": 82.4,
+     "bytes": 1489,
+     "window_radius_m": null
+    },
+    {
+     "i": 31,
+     "lon": 73.830214,
+     "lat": 18.552103,
+     "db_ms": 43.5,
+     "api_ms": 0.7,
+     "net_ms": 17.03,
+     "total_ms": 44.2,
+     "round_trip_ms": 61.2,
+     "bytes": 1510,
+     "window_radius_m": null
+    },
+    {
+     "i": 32,
+     "lon": 73.827164,
+     "lat": 18.560811,
+     "db_ms": 54.7,
+     "api_ms": 0.6,
+     "net_ms": 17.26,
+     "total_ms": 55.3,
+     "round_trip_ms": 72.6,
+     "bytes": 1480,
+     "window_radius_m": null
+    },
+    {
+     "i": 33,
+     "lon": 73.832633,
+     "lat": 18.550349,
+     "db_ms": 45.1,
+     "api_ms": 0.7,
+     "net_ms": 20.37,
+     "total_ms": 45.8,
+     "round_trip_ms": 66.2,
+     "bytes": 1492,
+     "window_radius_m": null
+    },
+    {
+     "i": 34,
+     "lon": 73.824387,
+     "lat": 18.557364,
+     "db_ms": 55.8,
+     "api_ms": 0.7,
+     "net_ms": 18.94,
+     "total_ms": 56.5,
+     "round_trip_ms": 75.4,
+     "bytes": 1469,
+     "window_radius_m": null
+    },
+    {
+     "i": 35,
+     "lon": 73.834349,
+     "lat": 18.57446,
+     "db_ms": 47.9,
+     "api_ms": 0.6,
+     "net_ms": 43.36,
+     "total_ms": 48.5,
+     "round_trip_ms": 91.9,
+     "bytes": 1492,
+     "window_radius_m": null
+    },
+    {
+     "i": 36,
+     "lon": 73.821762,
+     "lat": 18.554959,
+     "db_ms": 55.3,
+     "api_ms": 0.5,
+     "net_ms": 36.81,
+     "total_ms": 55.8,
+     "round_trip_ms": 92.6,
+     "bytes": 1442,
+     "window_radius_m": null
+    },
+    {
+     "i": 37,
+     "lon": 73.831886,
+     "lat": 18.560414,
+     "db_ms": 67.6,
+     "api_ms": 0.6,
+     "net_ms": 43.55,
+     "total_ms": 68.2,
+     "round_trip_ms": 111.7,
+     "bytes": 1492,
+     "window_radius_m": null
+    },
+    {
+     "i": 38,
+     "lon": 73.823634,
+     "lat": 18.554536,
+     "db_ms": 78.1,
+     "api_ms": 0.9,
+     "net_ms": 20.99,
+     "total_ms": 79.0,
+     "round_trip_ms": 100.0,
+     "bytes": 1458,
+     "window_radius_m": null
+    },
+    {
+     "i": 39,
+     "lon": 73.838214,
+     "lat": 18.563352,
+     "db_ms": 46.0,
+     "api_ms": 0.6,
+     "net_ms": 39.87,
+     "total_ms": 46.6,
+     "round_trip_ms": 86.5,
+     "bytes": 1513,
+     "window_radius_m": null
+    },
+    {
+     "i": 40,
+     "lon": 73.826135,
+     "lat": 18.553491,
+     "db_ms": 60.8,
+     "api_ms": 0.6,
+     "net_ms": 18.94,
+     "total_ms": 61.4,
+     "round_trip_ms": 80.3,
+     "bytes": 1454,
+     "window_radius_m": null
+    },
+    {
+     "i": 41,
+     "lon": 73.837074,
+     "lat": 18.566445,
+     "db_ms": 54.5,
+     "api_ms": 0.7,
+     "net_ms": 37.76,
+     "total_ms": 55.2,
+     "round_trip_ms": 93.0,
+     "bytes": 1511,
+     "window_radius_m": null
+    },
+    {
+     "i": 42,
+     "lon": 73.82033,
+     "lat": 18.561296,
+     "db_ms": 55.7,
+     "api_ms": 0.7,
+     "net_ms": 36.1,
+     "total_ms": 56.4,
+     "round_trip_ms": 92.5,
+     "bytes": 1492,
+     "window_radius_m": null
+    },
+    {
+     "i": 43,
+     "lon": 73.843115,
+     "lat": 18.57221,
+     "db_ms": 44.5,
+     "api_ms": 0.6,
+     "net_ms": 32.2,
+     "total_ms": 45.1,
+     "round_trip_ms": 77.3,
+     "bytes": 1495,
+     "window_radius_m": null
+    },
+    {
+     "i": 44,
+     "lon": 73.827405,
+     "lat": 18.56166,
+     "db_ms": 43.5,
+     "api_ms": 0.7,
+     "net_ms": 17.43,
+     "total_ms": 44.2,
+     "round_trip_ms": 61.6,
+     "bytes": 1482,
+     "window_radius_m": null
+    },
+    {
+     "i": 45,
+     "lon": 73.832471,
+     "lat": 18.533319,
+     "db_ms": 41.1,
+     "api_ms": 0.6,
+     "net_ms": 11.36,
+     "total_ms": 41.7,
+     "round_trip_ms": 53.1,
+     "bytes": 1529,
+     "window_radius_m": null
+    },
+    {
+     "i": 46,
+     "lon": 73.834252,
+     "lat": 18.561543,
+     "db_ms": 44.4,
+     "api_ms": 0.6,
+     "net_ms": 15.98,
+     "total_ms": 45.0,
+     "round_trip_ms": 61.0,
+     "bytes": 1493,
+     "window_radius_m": null
+    },
+    {
+     "i": 47,
+     "lon": 73.826282,
+     "lat": 18.548458,
+     "db_ms": 42.6,
+     "api_ms": 0.5,
+     "net_ms": 20.73,
+     "total_ms": 43.1,
+     "round_trip_ms": 63.8,
+     "bytes": 1487,
+     "window_radius_m": null
+    },
+    {
+     "i": 48,
+     "lon": 73.83447,
+     "lat": 18.54481,
+     "db_ms": 36.1,
+     "api_ms": 0.7,
+     "net_ms": 19.37,
+     "total_ms": 36.8,
+     "round_trip_ms": 56.2,
+     "bytes": 1490,
+     "window_radius_m": null
+    },
+    {
+     "i": 49,
+     "lon": 73.829891,
+     "lat": 18.561829,
+     "db_ms": 37.6,
+     "api_ms": 16.1,
+     "net_ms": 22.72,
+     "total_ms": 53.7,
+     "round_trip_ms": 76.4,
+     "bytes": 1491,
+     "window_radius_m": null
+    }
+   ]
+  },
+  {
+   "variant": "nearest k=5: expanding window 1.5 / 3 / 6 km, then whole graph",
+   "rows": [
+    {
+     "i": 0,
+     "lon": 73.825958,
+     "lat": 18.553082,
+     "db_ms": 9.3,
+     "api_ms": 0.6,
+     "net_ms": 24.04,
+     "total_ms": 9.9,
+     "round_trip_ms": 33.9,
+     "bytes": 1455,
+     "window_radius_m": 1500
+    },
+    {
+     "i": 1,
+     "lon": 73.816597,
+     "lat": 18.559489,
+     "db_ms": 38.8,
+     "api_ms": 1.0,
+     "net_ms": 20.44,
+     "total_ms": 39.8,
+     "round_trip_ms": 60.2,
+     "bytes": 1460,
+     "window_radius_m": 3000
+    },
+    {
+     "i": 2,
+     "lon": 73.821759,
+     "lat": 18.560998,
+     "db_ms": 7.4,
+     "api_ms": 0.6,
+     "net_ms": 25.12,
+     "total_ms": 8.0,
+     "round_trip_ms": 33.1,
+     "bytes": 1491,
+     "window_radius_m": 1500
+    },
+    {
+     "i": 3,
+     "lon": 73.823515,
+     "lat": 18.564994,
+     "db_ms": 7.3,
+     "api_ms": 0.6,
+     "net_ms": 17.1,
+     "total_ms": 7.9,
+     "round_trip_ms": 25.0,
+     "bytes": 1491,
+     "window_radius_m": 1500
+    },
+    {
+     "i": 4,
+     "lon": 73.830716,
+     "lat": 18.545384,
+     "db_ms": 6.6,
+     "api_ms": 0.7,
+     "net_ms": 19.78,
+     "total_ms": 7.3,
+     "round_trip_ms": 27.1,
+     "bytes": 1478,
+     "window_radius_m": 1500
+    },
+    {
+     "i": 5,
+     "lon": 73.817046,
+     "lat": 18.567169,
+     "db_ms": 38.8,
+     "api_ms": 0.7,
+     "net_ms": 15.6,
+     "total_ms": 39.5,
+     "round_trip_ms": 55.1,
+     "bytes": 1489,
+     "window_radius_m": 3000
+    },
+    {
+     "i": 6,
+     "lon": 73.816518,
+     "lat": 18.565589,
+     "db_ms": 27.9,
+     "api_ms": 0.8,
+     "net_ms": 15.4,
+     "total_ms": 28.7,
+     "round_trip_ms": 44.1,
+     "bytes": 1489,
+     "window_radius_m": 3000
+    },
+    {
+     "i": 7,
+     "lon": 73.836987,
+     "lat": 18.541002,
+     "db_ms": 8.3,
+     "api_ms": 0.5,
+     "net_ms": 14.03,
+     "total_ms": 8.8,
+     "round_trip_ms": 22.8,
+     "bytes": 1530,
+     "window_radius_m": 1500
+    },
+    {
+     "i": 8,
+     "lon": 73.835103,
+     "lat": 18.571793,
+     "db_ms": 30.7,
+     "api_ms": 0.6,
+     "net_ms": 24.56,
+     "total_ms": 31.3,
+     "round_trip_ms": 55.9,
+     "bytes": 1492,
+     "window_radius_m": 3000
+    },
+    {
+     "i": 9,
+     "lon": 73.831813,
+     "lat": 18.531472,
+     "db_ms": 14.6,
+     "api_ms": 0.7,
+     "net_ms": 24.32,
+     "total_ms": 15.3,
+     "round_trip_ms": 39.6,
+     "bytes": 1528,
+     "window_radius_m": 1500
+    },
+    {
+     "i": 10,
+     "lon": 73.841811,
+     "lat": 18.572294,
+     "db_ms": 105.2,
+     "api_ms": 0.7,
+     "net_ms": 26.81,
+     "total_ms": 105.9,
+     "round_trip_ms": 132.7,
+     "bytes": 1500,
+     "window_radius_m": 6000
+    },
+    {
+     "i": 11,
+     "lon": 73.827927,
+     "lat": 18.55493,
+     "db_ms": 6.9,
+     "api_ms": 0.7,
+     "net_ms": 42.74,
+     "total_ms": 7.6,
+     "round_trip_ms": 50.3,
+     "bytes": 1454,
+     "window_radius_m": 1500
+    },
+    {
+     "i": 12,
+     "lon": 73.835106,
+     "lat": 18.543931,
+     "db_ms": 7.7,
+     "api_ms": 0.6,
+     "net_ms": 42.32,
+     "total_ms": 8.3,
+     "round_trip_ms": 50.6,
+     "bytes": 1509,
+     "window_radius_m": 1500
+    },
+    {
+     "i": 13,
+     "lon": 73.823485,
+     "lat": 18.549712,
+     "db_ms": 6.5,
+     "api_ms": 0.6,
+     "net_ms": 18.65,
+     "total_ms": 7.1,
+     "round_trip_ms": 25.7,
+     "bytes": 1513,
+     "window_radius_m": 1500
+    },
+    {
+     "i": 14,
+     "lon": 73.836847,
+     "lat": 18.568015,
+     "db_ms": 49.0,
+     "api_ms": 0.5,
+     "net_ms": 25.87,
+     "total_ms": 49.5,
+     "round_trip_ms": 75.4,
+     "bytes": 1538,
+     "window_radius_m": 3000
+    },
+    {
+     "i": 15,
+     "lon": 73.827572,
+     "lat": 18.548494,
+     "db_ms": 7.6,
+     "api_ms": 3.0,
+     "net_ms": 16.36,
+     "total_ms": 10.6,
+     "round_trip_ms": 27.0,
+     "bytes": 1488,
+     "window_radius_m": 1500
+    },
+    {
+     "i": 16,
+     "lon": 73.840801,
+     "lat": 18.570476,
+     "db_ms": 95.7,
+     "api_ms": 0.8,
+     "net_ms": 49.68,
+     "total_ms": 96.5,
+     "round_trip_ms": 146.2,
+     "bytes": 1493,
+     "window_radius_m": 6000
+    },
+    {
+     "i": 17,
+     "lon": 73.832622,
+     "lat": 18.545213,
+     "db_ms": 8.0,
+     "api_ms": 0.6,
+     "net_ms": 20.46,
+     "total_ms": 8.6,
+     "round_trip_ms": 29.1,
+     "bytes": 1491,
+     "window_radius_m": 1500
+    },
+    {
+     "i": 18,
+     "lon": 73.8266,
+     "lat": 18.554301,
+     "db_ms": 5.9,
+     "api_ms": 0.6,
+     "net_ms": 33.76,
+     "total_ms": 6.5,
+     "round_trip_ms": 40.3,
+     "bytes": 1450,
+     "window_radius_m": 1500
+    },
+    {
+     "i": 19,
+     "lon": 73.819246,
+     "lat": 18.561512,
+     "db_ms": 8.1,
+     "api_ms": 0.8,
+     "net_ms": 13.23,
+     "total_ms": 8.9,
+     "round_trip_ms": 22.1,
+     "bytes": 1491,
+     "window_radius_m": 1500
+    },
+    {
+     "i": 20,
+     "lon": 73.816975,
+     "lat": 18.5674,
+     "db_ms": 39.4,
+     "api_ms": 0.8,
+     "net_ms": 18.08,
+     "total_ms": 40.2,
+     "round_trip_ms": 58.3,
+     "bytes": 1487,
+     "window_radius_m": 3000
+    },
+    {
+     "i": 21,
+     "lon": 73.817467,
+     "lat": 18.557325,
+     "db_ms": 6.6,
+     "api_ms": 0.9,
+     "net_ms": 15.09,
+     "total_ms": 7.5,
+     "round_trip_ms": 22.6,
+     "bytes": 1457,
+     "window_radius_m": 1500
+    },
+    {
+     "i": 22,
+     "lon": 73.81231,
+     "lat": 18.567848,
+     "db_ms": 36.0,
+     "api_ms": 0.6,
+     "net_ms": 12.16,
+     "total_ms": 36.6,
+     "round_trip_ms": 48.8,
+     "bytes": 1438,
+     "window_radius_m": 3000
+    },
+    {
+     "i": 23,
+     "lon": 73.819055,
+     "lat": 18.560868,
+     "db_ms": 33.0,
+     "api_ms": 0.6,
+     "net_ms": 38.84,
+     "total_ms": 33.6,
+     "round_trip_ms": 72.4,
+     "bytes": 1494,
+     "window_radius_m": 3000
+    },
+    {
+     "i": 24,
+     "lon": 73.821871,
+     "lat": 18.563664,
+     "db_ms": 14.5,
+     "api_ms": 1.5,
+     "net_ms": 44.59,
+     "total_ms": 16.0,
+     "round_trip_ms": 60.6,
+     "bytes": 1491,
+     "window_radius_m": 1500
+    },
+    {
+     "i": 25,
+     "lon": 73.830914,
+     "lat": 18.56013,
+     "db_ms": 43.5,
+     "api_ms": 0.7,
+     "net_ms": 41.07,
+     "total_ms": 44.2,
+     "round_trip_ms": 85.3,
+     "bytes": 1492,
+     "window_radius_m": 3000
+    },
+    {
+     "i": 26,
+     "lon": 73.830294,
+     "lat": 18.559035,
+     "db_ms": 45.3,
+     "api_ms": 1.4,
+     "net_ms": 16.93,
+     "total_ms": 46.7,
+     "round_trip_ms": 63.6,
+     "bytes": 1493,
+     "window_radius_m": 3000
+    },
+    {
+     "i": 27,
+     "lon": 73.823867,
+     "lat": 18.567916,
+     "db_ms": 41.5,
+     "api_ms": 0.6,
+     "net_ms": 19.65,
+     "total_ms": 42.1,
+     "round_trip_ms": 61.8,
+     "bytes": 1495,
+     "window_radius_m": 3000
+    },
+    {
+     "i": 28,
+     "lon": 73.829265,
+     "lat": 18.557603,
+     "db_ms": 6.6,
+     "api_ms": 0.8,
+     "net_ms": 22.86,
+     "total_ms": 7.4,
+     "round_trip_ms": 30.3,
+     "bytes": 1503,
+     "window_radius_m": 1500
+    },
+    {
+     "i": 29,
+     "lon": 73.832257,
+     "lat": 18.552715,
+     "db_ms": 7.0,
+     "api_ms": 0.6,
+     "net_ms": 16.35,
+     "total_ms": 7.6,
+     "round_trip_ms": 23.9,
+     "bytes": 1533,
+     "window_radius_m": 1500
+    },
+    {
+     "i": 30,
+     "lon": 73.818561,
+     "lat": 18.566232,
+     "db_ms": 29.9,
+     "api_ms": 0.7,
+     "net_ms": 14.64,
+     "total_ms": 30.6,
+     "round_trip_ms": 45.2,
+     "bytes": 1490,
+     "window_radius_m": 3000
+    },
+    {
+     "i": 31,
+     "lon": 73.830214,
+     "lat": 18.552103,
+     "db_ms": 7.0,
+     "api_ms": 0.6,
+     "net_ms": 15.71,
+     "total_ms": 7.6,
+     "round_trip_ms": 23.3,
+     "bytes": 1509,
+     "window_radius_m": 1500
+    },
+    {
+     "i": 32,
+     "lon": 73.827164,
+     "lat": 18.560811,
+     "db_ms": 7.3,
+     "api_ms": 0.5,
+     "net_ms": 32.8,
+     "total_ms": 7.8,
+     "round_trip_ms": 40.6,
+     "bytes": 1479,
+     "window_radius_m": 1500
+    },
+    {
+     "i": 33,
+     "lon": 73.832633,
+     "lat": 18.550349,
+     "db_ms": 7.0,
+     "api_ms": 0.6,
+     "net_ms": 17.47,
+     "total_ms": 7.6,
+     "round_trip_ms": 25.1,
+     "bytes": 1491,
+     "window_radius_m": 1500
+    },
+    {
+     "i": 34,
+     "lon": 73.824387,
+     "lat": 18.557364,
+     "db_ms": 6.9,
+     "api_ms": 0.7,
+     "net_ms": 15.46,
+     "total_ms": 7.6,
+     "round_trip_ms": 23.1,
+     "bytes": 1468,
+     "window_radius_m": 1500
+    },
+    {
+     "i": 35,
+     "lon": 73.834349,
+     "lat": 18.57446,
+     "db_ms": 36.2,
+     "api_ms": 0.7,
+     "net_ms": 17.13,
+     "total_ms": 36.9,
+     "round_trip_ms": 54.0,
+     "bytes": 1493,
+     "window_radius_m": 3000
+    },
+    {
+     "i": 36,
+     "lon": 73.821762,
+     "lat": 18.554959,
+     "db_ms": 5.8,
+     "api_ms": 0.7,
+     "net_ms": 22.3,
+     "total_ms": 6.5,
+     "round_trip_ms": 28.8,
+     "bytes": 1441,
+     "window_radius_m": 1500
+    },
+    {
+     "i": 37,
+     "lon": 73.831886,
+     "lat": 18.560414,
+     "db_ms": 35.5,
+     "api_ms": 0.9,
+     "net_ms": 18.41,
+     "total_ms": 36.4,
+     "round_trip_ms": 54.8,
+     "bytes": 1493,
+     "window_radius_m": 3000
+    },
+    {
+     "i": 38,
+     "lon": 73.823634,
+     "lat": 18.554536,
+     "db_ms": 6.4,
+     "api_ms": 0.6,
+     "net_ms": 16.77,
+     "total_ms": 7.0,
+     "round_trip_ms": 23.8,
+     "bytes": 1457,
+     "window_radius_m": 1500
+    },
+    {
+     "i": 39,
+     "lon": 73.838214,
+     "lat": 18.563352,
+     "db_ms": 39.5,
+     "api_ms": 0.8,
+     "net_ms": 15.07,
+     "total_ms": 40.3,
+     "round_trip_ms": 55.4,
+     "bytes": 1514,
+     "window_radius_m": 3000
+    },
+    {
+     "i": 40,
+     "lon": 73.826135,
+     "lat": 18.553491,
+     "db_ms": 10.9,
+     "api_ms": 3.4,
+     "net_ms": 22.96,
+     "total_ms": 14.3,
+     "round_trip_ms": 37.3,
+     "bytes": 1455,
+     "window_radius_m": 1500
+    },
+    {
+     "i": 41,
+     "lon": 73.837074,
+     "lat": 18.566445,
+     "db_ms": 40.7,
+     "api_ms": 0.6,
+     "net_ms": 26.11,
+     "total_ms": 41.3,
+     "round_trip_ms": 67.4,
+     "bytes": 1512,
+     "window_radius_m": 3000
+    },
+    {
+     "i": 42,
+     "lon": 73.82033,
+     "lat": 18.561296,
+     "db_ms": 6.6,
+     "api_ms": 0.7,
+     "net_ms": 17.05,
+     "total_ms": 7.3,
+     "round_trip_ms": 24.4,
+     "bytes": 1491,
+     "window_radius_m": 1500
+    },
+    {
+     "i": 43,
+     "lon": 73.843115,
+     "lat": 18.57221,
+     "db_ms": 84.5,
+     "api_ms": 0.8,
+     "net_ms": 25.29,
+     "total_ms": 85.3,
+     "round_trip_ms": 110.6,
+     "bytes": 1496,
+     "window_radius_m": 6000
+    },
+    {
+     "i": 44,
+     "lon": 73.827405,
+     "lat": 18.56166,
+     "db_ms": 7.3,
+     "api_ms": 0.6,
+     "net_ms": 40.36,
+     "total_ms": 7.9,
+     "round_trip_ms": 48.3,
+     "bytes": 1481,
+     "window_radius_m": 1500
+    },
+    {
+     "i": 45,
+     "lon": 73.832471,
+     "lat": 18.533319,
+     "db_ms": 8.8,
+     "api_ms": 0.6,
+     "net_ms": 32.52,
+     "total_ms": 9.4,
+     "round_trip_ms": 41.9,
+     "bytes": 1528,
+     "window_radius_m": 1500
+    },
+    {
+     "i": 46,
+     "lon": 73.834252,
+     "lat": 18.561543,
+     "db_ms": 42.4,
+     "api_ms": 0.7,
+     "net_ms": 17.34,
+     "total_ms": 43.1,
+     "round_trip_ms": 60.4,
+     "bytes": 1494,
+     "window_radius_m": 3000
+    },
+    {
+     "i": 47,
+     "lon": 73.826282,
+     "lat": 18.548458,
+     "db_ms": 6.7,
+     "api_ms": 0.7,
+     "net_ms": 18.99,
+     "total_ms": 7.4,
+     "round_trip_ms": 26.4,
+     "bytes": 1486,
+     "window_radius_m": 1500
+    },
+    {
+     "i": 48,
+     "lon": 73.83447,
+     "lat": 18.54481,
+     "db_ms": 38.6,
+     "api_ms": 3.1,
+     "net_ms": 14.57,
+     "total_ms": 41.7,
+     "round_trip_ms": 56.3,
+     "bytes": 1491,
+     "window_radius_m": 3000
+    },
+    {
+     "i": 49,
+     "lon": 73.829891,
+     "lat": 18.561829,
+     "db_ms": 7.1,
+     "api_ms": 0.7,
+     "net_ms": 18.15,
+     "total_ms": 7.8,
+     "round_trip_ms": 26.0,
+     "bytes": 1490,
+     "window_radius_m": 1500
+    }
+   ]
+  }
+ ]
+}
